@@ -137,6 +137,23 @@ int main(int argc, char* argv[]) {
     init_fs();
 
     /* process input and print tree */
+    FILE *fp;
+    char* commands;
+
+    commands = (char*)malloc(MAX_COMMANDS * sizeof(char));
+    
+    fp = fopen(argv[1],"r");
+    
+    for(int i=0; i<MAX_COMMANDS+1; i++) {
+        if( feof(fp) ) {
+            break ;
+        }
+        commands[i] = fgetc(fp);
+        
+    }
+    printf("%s", commands);
+
+    fclose(fp);
     processInput();
     applyCommands();
     print_tecnicofs_tree(stdout);
