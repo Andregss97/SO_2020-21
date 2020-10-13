@@ -39,7 +39,10 @@ void processInput(char* filename){
     char line[MAX_INPUT_SIZE];
 
     FILE *file = fopen(filename,"r");
-
+    if( file == NULL ) {
+        fprintf(stderr, "Error: no such file\n");
+        exit(EXIT_FAILURE);
+    }
     /* break loop with ^Z or ^D */
     while (fgets(line, sizeof(line)/sizeof(char), file)) {
         char token, type;
@@ -135,11 +138,38 @@ void applyCommands(){
     }
 }
 
+void verify_inputs(int argc, char* argv[]) {
+    if (argc != 5) {
+        fprintf(stderr, "Error: invalid number of arguments\n");
+        exit(EXIT_FAILURE);
+    }
+    else if (!isalpha(*argv[1])) {
+        fprintf(stderr, "Error: the given inputfile is not a char\n");
+        exit(EXIT_FAILURE);
+    }
+    else if (!isalpha(*argv[2])) {
+        fprintf(stderr, "Error: the given outputfile is not a char\n");
+        exit(EXIT_FAILURE);
+    }
+    else if (!isdigit(*argv[3])) {
+        fprintf(stderr, "Error: the number of threads must be a positive integer\n");
+        exit(EXIT_FAILURE);
+    }
+    else if (!isalpha(*argv[4])) {
+        fprintf(stderr, "Error: the given synch strategy is not a char\n");
+        exit(EXIT_FAILURE);
+    }
+    else if (strcmp(argv[4], "nosync") != 0 && strcmp(argv[4], "mutex") != 0 && strcmp(argv[4], "rwlock") != 0) {
+        fprintf(stderr, "Error: the given synch strategy is not valid (mutex, rwlock or nosync)\n");
+        exit(EXIT_FAILURE);
+    }
+}
+
 int main(int argc, char* argv[]) {
     /* init filesystem */
     init_fs();
-
     /* process input and print tree */
+    verify_inputs(argc, argv);
     processInput(argv[1]);
     applyCommands();
     print_tecnicofs_tree(stdout);
