@@ -35,11 +35,13 @@ void errorParse(){
     exit(EXIT_FAILURE);
 }
 
-void processInput(){
+void processInput(char* filename){
     char line[MAX_INPUT_SIZE];
 
+    FILE *file = fopen(filename,"r");
+
     /* break loop with ^Z or ^D */
-    while (fgets(line, sizeof(line)/sizeof(char), stdin)) {
+    while (fgets(line, sizeof(line)/sizeof(char), file)) {
         char token, type;
         char name[MAX_INPUT_SIZE];
 
@@ -79,6 +81,7 @@ void processInput(){
             }
         }
     }
+    fclose(file);
 }
 
 void applyCommands(){
@@ -137,24 +140,7 @@ int main(int argc, char* argv[]) {
     init_fs();
 
     /* process input and print tree */
-    FILE *fp;
-    char* commands;
-
-    commands = (char*)malloc(MAX_COMMANDS * sizeof(char));
-    
-    fp = fopen(argv[1],"r");
-    
-    for(int i=0; i<MAX_COMMANDS+1; i++) {
-        if( feof(fp) ) {
-            break ;
-        }
-        commands[i] = fgetc(fp);
-        
-    }
-    printf("%s", commands);
-
-    fclose(fp);
-    processInput();
+    processInput(argv[1]);
     applyCommands();
     print_tecnicofs_tree(stdout);
 
