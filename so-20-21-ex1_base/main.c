@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <getopt.h>
+#include <pthread.h>
 #include <string.h>
 #include <ctype.h>
 #include "fs/operations.h"
@@ -87,7 +88,7 @@ void processInput(char* filename){
     fclose(file);
 }
 
-void applyCommands(){
+void* applyCommands(){
     while (numberCommands > 0){
         const char* command = removeCommand();
         if (command == NULL){
@@ -136,6 +137,7 @@ void applyCommands(){
             }
         }
     }
+    return NULL;
 }
 
 void verify_inputs(int argc, char* argv[]) {
@@ -170,8 +172,21 @@ int main(int argc, char* argv[]) {
     init_fs();
     /* process input and print tree */
     verify_inputs(argc, argv);
+    /* argv[1] aka inputfile given as atribute */
     processInput(argv[1]);
-    applyCommands();
+    pthread_t tid;
+    int numthreads = atoi(argv[3]);
+    for (int i=1; i <= numthreads; i++) {
+        if (pthread_create(&tid, NULL, applyCommands, NULL) != 0) {
+            printf("Error creating thread.\n");
+            return -1;
+        }
+    }
+    
+    if(pthread_join(tid, NULL) != 0) {
+        printf("Error joining thred.\n");
+        return -1;
+    }
     print_tecnicofs_tree(stdout);
 
     /* release allocated memory */
