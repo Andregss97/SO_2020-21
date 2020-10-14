@@ -3,7 +3,7 @@
 #include <getopt.h>
 #include <pthread.h>
 #include <string.h>
-#include <time.h>
+#include <sys/time.h>
 #include <ctype.h>
 #include "fs/operations.h"
 
@@ -257,6 +257,7 @@ void verify_inputs(int argc, char* argv[]) {
 }
 
 int main(int argc, char* argv[]) {
+    struct timeval t0, t1, totalT;
     /* init filesystem */
     init_fs();
     /* process input and print tree */
@@ -272,7 +273,7 @@ int main(int argc, char* argv[]) {
     else if (strcmp(argv[4], "rwlock") == 0) {
         flag = 2;
     }
-
+    
     if (pthread_mutex_init(&lock, NULL) != 0) { 
         fprintf(stderr, "Error: the mutex failed to initialize\n");
         exit(EXIT_FAILURE);
@@ -282,9 +283,8 @@ int main(int argc, char* argv[]) {
         fprintf(stderr, "Error: the rwlock failed to initialize\n");
         exit(EXIT_FAILURE);
     }
-
     
-
+    gettimeofday(&t0, NULL);
     for (int i=0; i < numberThreads; i++) {
         if (pthread_create(&(tid[i]), NULL, applyCommands, &flag) != 0) {
             printf("Error creating thread.\n");
@@ -298,6 +298,10 @@ int main(int argc, char* argv[]) {
             return -1;
         }
     }
+    gettimeofday(&t1, NULL);
+    timersub(&t1, &t0, &totalT);
+
+    printf("TecnicoFS completed in %ld.%04d seconds.\n", totalT.tv_sec, totalT.tv_usec);
     
     FILE *stdout = fopen(argv[2],"w");
     print_tecnicofs_tree(stdout);
