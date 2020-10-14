@@ -96,6 +96,7 @@ void* applyCommands(void* oldF){
 
     while (numberCommands > 0){
 
+/*-------------------------------------------------------------------------------------------------*/
         if(flag == 1) 
             pthread_mutex_lock(&lock);
         if (flag == 2)
@@ -109,6 +110,7 @@ void* applyCommands(void* oldF){
         if (flag == 2)
             /* rw unlock*/
             pthread_rwlock_unlock(&rwl);
+/*-------------------------------------------------------------------------------------------------*/
 
         if (command == NULL){
             continue;
@@ -117,6 +119,7 @@ void* applyCommands(void* oldF){
         char token, type;
         char name[MAX_INPUT_SIZE];
 
+/*-------------------------------------------------------------------------------------------------*/
         if(flag == 1) 
             pthread_mutex_lock(&lock);
         if (flag == 2)
@@ -125,11 +128,11 @@ void* applyCommands(void* oldF){
 
         int numTokens = sscanf(command, "%c %s %c", &token, name, &type);
 
-        if(flag == 1) 
-            pthread_mutex_unlock(&lock);
-        if (flag == 2)
-            /* rw lock*/
-            pthread_rwlock_unlock(&rwl);
+        // if(flag == 1) 
+        //     pthread_mutex_unlock(&lock);
+        // if (flag == 2)
+        //     /* rw lock*/
+        //     pthread_rwlock_unlock(&rwl);
 
         if (numTokens < 2) {
             fprintf(stderr, "Error: invalid command in Queue\n");
@@ -140,11 +143,11 @@ void* applyCommands(void* oldF){
         switch (token) {
             case 'c':
 
-                if(flag == 1) 
-                    pthread_mutex_lock(&lock);
-                if (flag == 2)
-                    /* rw lock*/
-                    pthread_rwlock_wrlock(&rwl);
+                // if(flag == 1) 
+                //     pthread_mutex_lock(&lock);
+                // if (flag == 2)
+                //     /* rw lock*/
+                //     pthread_rwlock_wrlock(&rwl);
 
                 switch (type) {
                     case 'f':
@@ -162,20 +165,20 @@ void* applyCommands(void* oldF){
                         exit(EXIT_FAILURE);
                 }
 
-                if(flag == 1) 
-                    pthread_mutex_unlock(&lock);
-                if (flag == 2)
-                    /* rw unlock*/
-                    pthread_rwlock_unlock(&rwl);
+                // if(flag == 1) 
+                //     pthread_mutex_unlock(&lock);
+                // if (flag == 2)
+                //     /* rw unlock*/
+                //     pthread_rwlock_unlock(&rwl);
 
                 break;
             case 'l':
                 
-                if(flag == 1) 
-                    pthread_mutex_lock(&lock);
-                if (flag == 2)
-                    /* rw lock*/
-                    pthread_rwlock_rdlock(&rwl);
+                // if(flag == 1) 
+                //     pthread_mutex_lock(&lock);
+                // if (flag == 2)
+                //     /* rw lock*/
+                //     pthread_rwlock_rdlock(&rwl);
 
                 searchResult = lookup(name);
                  
@@ -184,29 +187,29 @@ void* applyCommands(void* oldF){
                 else
                     printf("Search: %s not found\n", name);
                 
-                if(flag == 1) 
-                    pthread_mutex_unlock(&lock);
-                if (flag == 2)
-                    /* rw unlock*/
-                    pthread_rwlock_unlock(&rwl);
+                // if(flag == 1) 
+                //     pthread_mutex_unlock(&lock);
+                // if (flag == 2)
+                //     /* rw unlock*/
+                //     pthread_rwlock_unlock(&rwl);
 
                 break;
             case 'd':
                 
-                if(flag == 1) 
-                    pthread_mutex_lock(&lock);
-                if (flag == 2)
-                    /* rw lock*/
-                    pthread_rwlock_wrlock(&rwl);
+                // if(flag == 1) 
+                //     pthread_mutex_lock(&lock);
+                // if (flag == 2)
+                //     /* rw lock*/
+                //     pthread_rwlock_wrlock(&rwl);
 
                 printf("Delete: %s\n", name);
                 delete(name);
                 
-                if(flag == 1) 
-                    pthread_mutex_unlock(&lock);
-                if (flag == 2)
-                    /* rw unlock*/
-                    pthread_rwlock_unlock(&rwl);
+                // if(flag == 1) 
+                //     pthread_mutex_unlock(&lock);
+                // if (flag == 2)
+                //     /* rw unlock*/
+                //     pthread_rwlock_unlock(&rwl);
 
                 break;
             default: { /* error */
@@ -214,6 +217,13 @@ void* applyCommands(void* oldF){
                 exit(EXIT_FAILURE);
             }
         }
+        if(flag == 1) 
+            pthread_mutex_unlock(&lock);
+        if (flag == 2)
+            /* rw lock*/
+            pthread_rwlock_unlock(&rwl);
+/*-------------------------------------------------------------------------------------------------*/
+
     }
 
     return NULL;
