@@ -3,6 +3,7 @@
 #include <getopt.h>
 #include <pthread.h>
 #include <string.h>
+#include <time.h>
 #include <ctype.h>
 #include "fs/operations.h"
 
@@ -57,6 +58,7 @@ void processInput(char* filename){
         if (numTokens < 1) {
             continue;
         }
+
         switch (token) {
             case 'c':
                 if(numTokens != 3)
@@ -130,24 +132,24 @@ void* applyCommands(void* oldF){
 
         // if(flag == 1) 
         //     pthread_mutex_unlock(&lock);
-        // if (flag == 2)
-        //     /* rw lock*/
-        //     pthread_rwlock_unlock(&rwl);
+        if (flag == 2)
+            /* rw unlock*/
+            pthread_rwlock_unlock(&rwl);
 
         if (numTokens < 2) {
             fprintf(stderr, "Error: invalid command in Queue\n");
             exit(EXIT_FAILURE);
         }
-        
+
         int searchResult;
         switch (token) {
             case 'c':
 
                 // if(flag == 1) 
                 //     pthread_mutex_lock(&lock);
-                // if (flag == 2)
-                //     /* rw lock*/
-                //     pthread_rwlock_wrlock(&rwl);
+                if (flag == 2)
+                    /* rw lock*/
+                    pthread_rwlock_wrlock(&rwl);
 
                 switch (type) {
                     case 'f':
@@ -167,18 +169,18 @@ void* applyCommands(void* oldF){
 
                 // if(flag == 1) 
                 //     pthread_mutex_unlock(&lock);
-                // if (flag == 2)
-                //     /* rw unlock*/
-                //     pthread_rwlock_unlock(&rwl);
+                if (flag == 2)
+                    /* rw unlock*/
+                    pthread_rwlock_unlock(&rwl);
 
                 break;
             case 'l':
                 
                 // if(flag == 1) 
                 //     pthread_mutex_lock(&lock);
-                // if (flag == 2)
-                //     /* rw lock*/
-                //     pthread_rwlock_rdlock(&rwl);
+                if (flag == 2)
+                    /* rw lock*/
+                    pthread_rwlock_rdlock(&rwl);
 
                 searchResult = lookup(name);
                  
@@ -189,27 +191,28 @@ void* applyCommands(void* oldF){
                 
                 // if(flag == 1) 
                 //     pthread_mutex_unlock(&lock);
-                // if (flag == 2)
-                //     /* rw unlock*/
-                //     pthread_rwlock_unlock(&rwl);
+                if (flag == 2)
+                    /* rw unlock*/
+                    pthread_rwlock_unlock(&rwl);
 
                 break;
+            
             case 'd':
                 
                 // if(flag == 1) 
                 //     pthread_mutex_lock(&lock);
-                // if (flag == 2)
-                //     /* rw lock*/
-                //     pthread_rwlock_wrlock(&rwl);
+                if (flag == 2)
+                    /* rw lock*/
+                    pthread_rwlock_wrlock(&rwl);
 
                 printf("Delete: %s\n", name);
                 delete(name);
                 
                 // if(flag == 1) 
                 //     pthread_mutex_unlock(&lock);
-                // if (flag == 2)
-                //     /* rw unlock*/
-                //     pthread_rwlock_unlock(&rwl);
+                if (flag == 2)
+                    /* rw unlock*/
+                    pthread_rwlock_unlock(&rwl);
 
                 break;
             default: { /* error */
@@ -219,9 +222,6 @@ void* applyCommands(void* oldF){
         }
         if(flag == 1) 
             pthread_mutex_unlock(&lock);
-        if (flag == 2)
-            /* rw lock*/
-            pthread_rwlock_unlock(&rwl);
 /*-------------------------------------------------------------------------------------------------*/
 
     }
@@ -283,12 +283,15 @@ int main(int argc, char* argv[]) {
         exit(EXIT_FAILURE);
     }
 
+    
+
     for (int i=0; i < numberThreads; i++) {
         if (pthread_create(&(tid[i]), NULL, applyCommands, &flag) != 0) {
             printf("Error creating thread.\n");
             return -1;
         }
     }
+
     for (int i=0; i < numberThreads; i++) {
         if(pthread_join(tid[i], NULL) != 0) {
             printf("Error joining thread.\n");
