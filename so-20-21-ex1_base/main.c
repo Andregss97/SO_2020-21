@@ -286,7 +286,9 @@ int main(int argc, char* argv[]) {
         }
     }
     
+    FILE *stdout = fopen(argv[2],"w");
     print_tecnicofs_tree(stdout);
+    fclose(stdout);
 
     /* release allocated memory */
     destroy_fs();
