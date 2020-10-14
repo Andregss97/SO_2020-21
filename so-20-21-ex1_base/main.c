@@ -301,7 +301,7 @@ int main(int argc, char* argv[]) {
     gettimeofday(&t1, NULL);
     timersub(&t1, &t0, &totalT);
 
-    printf("TecnicoFS completed in %ld.%04d seconds.\n", totalT.tv_sec, totalT.tv_usec);
+    printf("TecnicoFS completed in %ld.%04ld seconds.\n", totalT.tv_sec, totalT.tv_usec);
     
     FILE *stdout = fopen(argv[2],"w");
     print_tecnicofs_tree(stdout);
