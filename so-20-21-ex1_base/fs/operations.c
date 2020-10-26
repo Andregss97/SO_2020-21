@@ -241,6 +241,7 @@ int delete(char *name){
 int lookup(char *name) {
 	char full_path[MAX_FILE_NAME];
 	char delim[] = "/";
+	char* saveptr;
 
 	strcpy(full_path, name);
 
@@ -254,12 +255,12 @@ int lookup(char *name) {
 	/* get root inode data */
 	inode_get(current_inumber, &nType, &data);
 
-	char *path = strtok(full_path, delim);
+	char *path = strtok_r(full_path, delim, &saveptr);
 
 	/* search for all sub nodes */
 	while (path != NULL && (current_inumber = lookup_sub_node(path, data.dirEntries)) != FAIL) {
 		inode_get(current_inumber, &nType, &data);
-		path = strtok(NULL, delim);
+		path = strtok_r(NULL, delim, &saveptr);
 	}
 
 	return current_inumber;

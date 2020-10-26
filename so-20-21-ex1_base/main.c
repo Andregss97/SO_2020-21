@@ -92,7 +92,7 @@ void processInput(char* filename){
     fclose(file);
 }
 
-void applyCommands(){
+void* applyCommands(){
 
 
     while (numberCommands > 0){
@@ -157,6 +157,7 @@ void applyCommands(){
         }
 
     }
+    return NULL;
 }
 
 void verify_inputs(int argc, char* argv[]) {
@@ -190,6 +191,7 @@ int main(int argc, char* argv[]) {
     struct timeval t0, t1, totalT;
     /* init filesystem */
     init_fs();
+    printf("\nargumentos: %s %s %s\n", argv[0], argv[1], argv[2]);
     /* process input and print tree */
     verify_inputs(argc, argv);
     /* argv[1] aka inputfile given as atribute */
@@ -208,7 +210,7 @@ int main(int argc, char* argv[]) {
     
     gettimeofday(&t0, NULL);
     for (int i=0; i < numberThreads; i++) {
-        if (pthread_create(&(tid[i]), NULL, applyCommands) != 0) {
+        if (pthread_create(&(tid[i]), NULL, applyCommands, NULL) != 0) {
             printf("Error creating thread.\n");
             return -1;
         }
