@@ -241,6 +241,7 @@ int delete(char *name){
 int lookup(char *name) {
 	char full_path[MAX_FILE_NAME];
 	char delim[] = "/";
+	char* saveptr;
 
 	strcpy(full_path, name);
 
