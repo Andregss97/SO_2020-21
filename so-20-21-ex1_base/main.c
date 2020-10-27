@@ -113,19 +113,19 @@ void* applyCommands(){
             exit(EXIT_FAILURE);
         }
 
-        int searchResult;
+        //int searchResult;
         switch (token) {
             case 'c':
 
                 switch (type) {
                     case 'f':
                          
-                        printf("Create file: %s\n", name);
+                        //printf("Create file: %s\n", name);
                         create(name, T_FILE);
                         break;
                     case 'd':
                          
-                        printf("Create directory: %s\n", name);
+                        //printf("Create directory: %s\n", name);
                         create(name, T_DIRECTORY);
                         break;
                     default:
@@ -135,18 +135,18 @@ void* applyCommands(){
                 break;
             case 'l':
                 
-                searchResult = lookup(name);
+                lookup(name);
                  
-                if (searchResult >= 0)
-                    printf("Search: %s found\n", name);
-                else
-                    printf("Search: %s not found\n", name);
+                //if (searchResult >= 0)
+                    //printf("Search: %s found\n", name);
+                //else
+                    //printf("Search: %s not found\n", name);
                 
                 break;
             
             case 'd':
 
-                printf("Delete: %s\n", name);
+                //printf("Delete: %s\n", name);
                 delete(name);
 
                 break;
@@ -191,7 +191,7 @@ int main(int argc, char* argv[]) {
     struct timeval t0, t1, totalT;
     /* init filesystem */
     init_fs();
-    printf("\nargumentos: %s %s %s\n", argv[0], argv[1], argv[2]);
+
     /* process input and print tree */
     verify_inputs(argc, argv);
     /* argv[1] aka inputfile given as atribute */
@@ -199,10 +199,10 @@ int main(int argc, char* argv[]) {
     numberThreads = atoi(argv[3]);
     pthread_t tid[numberThreads];
     
-    // if (pthread_mutex_init(&lock, NULL) != 0) { 
-    //     fprintf(stderr, "Error: the mutex failed to initialize\n");
-    //     exit(EXIT_FAILURE);
-    // }
+    /*if (pthread_mutex_init(&lock, NULL) != 0) { 
+         fprintf(stderr, "Error: the mutex failed to initialize\n");
+         exit(EXIT_FAILURE);
+    }*/
     if (pthread_rwlock_init(&rwl, NULL) != 0) { 
         fprintf(stderr, "Error: the rwlock failed to initialize\n");
         exit(EXIT_FAILURE);
@@ -225,7 +225,7 @@ int main(int argc, char* argv[]) {
     gettimeofday(&t1, NULL);
     timersub(&t1, &t0, &totalT);
 
-    printf("TecnicoFS completed in %ld.%04ld seconds.\n", totalT.tv_sec, totalT.tv_usec);
+    printf("TecnicoFS completed in %ld.%04ld seconds.\n\n", totalT.tv_sec, totalT.tv_usec);
     
     FILE *stdout = fopen(argv[2],"w");
     print_tecnicofs_tree(stdout);
