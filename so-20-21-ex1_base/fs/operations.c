@@ -1,7 +1,10 @@
 #include "operations.h"
+#include "state.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+
+inode_t inode_table = inode_table_get();
 
 /* Given a path, fills pointers with strings for the parent path and child
  * file name
@@ -132,6 +135,9 @@ int create(char *name, type nodeType){
 		return FAIL;
 	}
 
+	//WRITE LOCK
+	pthread_rwlock_wrlock(&inode_table[parent_inumber].rwl);
+
 	inode_get(parent_inumber, &pType, &pdata);
 
 	if(pType != T_DIRECTORY) {
@@ -147,6 +153,8 @@ int create(char *name, type nodeType){
 	}
 
 	/* create node and add entry to folder that contains new node */
+
+	//TODO LOCK
 	child_inumber = inode_create(nodeType);
 	if (child_inumber == FAIL) {
 		//printf("failed to create %s in  %s, couldn't allocate inode\n",
@@ -253,12 +261,19 @@ int lookup(char *name) {
 	union Data data;
 
 	/* get root inode data */
+
+	//READ LOCK
+	pthread_rwlock_rdlock(&inode_table[current_inumber].rwl);
+
 	inode_get(current_inumber, &nType, &data);
 
 	char *path = strtok_r(full_path, delim, &saveptr);
 
 	/* search for all sub nodes */
 	while (path != NULL && (current_inumber = lookup_sub_node(path, data.dirEntries)) != FAIL) {
+		//READ LOCK
+		pthread_rwlock_rdlock(&inode_table[current_inumber].rwl);
+
 		inode_get(current_inumber, &nType, &data);
 		path = strtok_r(NULL, delim, &saveptr);
 	}

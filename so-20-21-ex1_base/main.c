@@ -11,8 +11,6 @@
 #define MAX_INPUT_SIZE 100
 
 int numberThreads = 0;
-pthread_mutex_t lock;
-pthread_rwlock_t rwl;
 
 char inputCommands[MAX_COMMANDS][MAX_INPUT_SIZE];
 int numberCommands = 0;
@@ -177,14 +175,6 @@ void verify_inputs(int argc, char* argv[]) {
         fprintf(stderr, "Error: the number of threads must be a positive integer\n");
         exit(EXIT_FAILURE);
     }
-    // else if (!isalpha(*argv[4])) {
-    //     fprintf(stderr, "Error: the given synch strategy is not a char\n");
-    //     exit(EXIT_FAILURE);
-    // }
-    // else if (strcmp(argv[4], "nosync") != 0 && strcmp(argv[4], "mutex") != 0 && strcmp(argv[4], "rwlock") != 0) {
-    //     fprintf(stderr, "Error: the given synch strategy is not valid (mutex, rwlock or nosync)\n");
-    //     exit(EXIT_FAILURE);
-    // }
 }
 
 int main(int argc, char* argv[]) {
@@ -199,14 +189,6 @@ int main(int argc, char* argv[]) {
     numberThreads = atoi(argv[3]);
     pthread_t tid[numberThreads];
     
-    /*if (pthread_mutex_init(&lock, NULL) != 0) { 
-         fprintf(stderr, "Error: the mutex failed to initialize\n");
-         exit(EXIT_FAILURE);
-    }*/
-    if (pthread_rwlock_init(&rwl, NULL) != 0) { 
-        fprintf(stderr, "Error: the rwlock failed to initialize\n");
-        exit(EXIT_FAILURE);
-    }
     
     gettimeofday(&t0, NULL);
     for (int i=0; i < numberThreads; i++) {

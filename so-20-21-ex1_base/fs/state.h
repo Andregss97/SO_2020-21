@@ -40,6 +40,7 @@ union Data {
 typedef struct inode_t {    
 	type nodeType;
 	union Data data;
+	pthread_rwlock_t rwl;
 	
     /* more i-node attributes will be added in future exercises */
 } inode_t;
@@ -48,6 +49,7 @@ typedef struct inode_t {
 void insert_delay(int cycles);
 void inode_table_init();
 void inode_table_destroy();
+inode_t inode_table_get();
 int inode_create(type nType);
 int inode_delete(int inumber);
 int inode_get(int inumber, type *nType, union Data *data);

@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <pthread.h>
 #include "state.h"
 #include "../tecnicofs-api-constants.h"
 
@@ -42,6 +43,11 @@ void inode_table_destroy() {
     }
 }
 
+inode_t inode_table_get(){
+    return inode_table;
+
+}
+
 /*
  * Creates a new i-node in the table with the given information.
  * Input:
@@ -57,6 +63,11 @@ int inode_create(type nType) {
     for (int inumber = 0; inumber < INODE_TABLE_SIZE; inumber++) {
         if (inode_table[inumber].nodeType == T_NONE) {
             inode_table[inumber].nodeType = nType;
+
+            if (pthread_rwlock_init(&inode_table[inumber].rwl, NULL) != 0) { 
+                fprintf(stderr, "Error: the rwlock failed to initialize\n");
+                exit(EXIT_FAILURE);
+            }
 
             if (nType == T_DIRECTORY) {
                 /* Initializes entry table */
