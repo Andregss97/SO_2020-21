@@ -49,12 +49,12 @@ void processInput(char* filename){
     while (fgets(line, sizeof(line)/sizeof(char), file)) {
         char type, token;
         char name[MAX_INPUT_SIZE];
-        char dir1[MAX_INPUT_SIZE];
-        char dir2[MAX_INPUT_SIZE];
+        char file1[MAX_INPUT_SIZE];
+        char file2[MAX_INPUT_SIZE];
         int numTokens;
         printf("LINE: %c\n", line[0]);
         if (strcmp(&line[0], "m") == 0) {
-            numTokens = sscanf(line, "%c %s %s", &token, dir1, dir2);
+            numTokens = sscanf(line, "%c %s %s", &token, file1, file2);
         }
         else {
             numTokens = sscanf(line, "%c %s %c", &token, name, &type);
@@ -125,12 +125,12 @@ void* applyCommands(){
 
         char type, token;
         char name[MAX_INPUT_SIZE];
-        char dir1[MAX_INPUT_SIZE];
-        char dir2[MAX_INPUT_SIZE];
+        char file1[MAX_INPUT_SIZE];
+        char file2[MAX_INPUT_SIZE];
         int numTokens;
 
         if (command[0] == 'm') {
-            numTokens = sscanf(command, "%c %s %s", &token, dir1, dir2);
+            numTokens = sscanf(command, "%c %s %s", &token, file1, file2);
         }
         else {
             numTokens = sscanf(command, "%c %s %c", &token, name, &type);
@@ -182,7 +182,7 @@ void* applyCommands(){
                 break;
 
             case 'm':
-                move(dir1, dir2);
+                move(file1, file2);
                 break;
                 
             default: { /* error */
