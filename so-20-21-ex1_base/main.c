@@ -47,11 +47,18 @@ void processInput(char* filename){
     }
     /* break loop with ^Z or ^D */
     while (fgets(line, sizeof(line)/sizeof(char), file)) {
-        char token, type;
+        char type, token;
         char name[MAX_INPUT_SIZE];
-
-        int numTokens = sscanf(line, "%c %s %c", &token, name, &type);
-
+        char dir1[MAX_INPUT_SIZE];
+        char dir2[MAX_INPUT_SIZE];
+        int numTokens;
+        printf("LINE: %c\n", line[0]);
+        if (strcmp(&line[0], "m") == 0) {
+            numTokens = sscanf(line, "%c %s %s", &token, dir1, dir2);
+        }
+        else {
+            numTokens = sscanf(line, "%c %s %c", &token, name, &type);
+        }
         /* perform minimal validation */
         if (numTokens < 1) {
             continue;
@@ -59,22 +66,37 @@ void processInput(char* filename){
 
         switch (token) {
             case 'c':
-                if(numTokens != 3)
+                if(numTokens != 3){
+                    printf("C erro: %d\n", numTokens);
                     errorParse();
+                }
+                if(insertCommand(line))
+                    break;
+                return;
+            
+            case 'm':
+                if(numTokens != 3){
+                    printf("M erro: %d\n", numTokens);
+                    errorParse();
+                }
                 if(insertCommand(line))
                     break;
                 return;
             
             case 'l':
-                if(numTokens != 2)
+                if(numTokens != 2){
+                    printf("L erro: %d\n", numTokens);
                     errorParse();
+                }
                 if(insertCommand(line))
                     break;
                 return;
             
             case 'd':
-                if(numTokens != 2)
+                if(numTokens != 2){
+                    printf("D erro: %d\n", numTokens);
                     errorParse();
+                }
                 if(insertCommand(line))
                     break;
                 return;
@@ -101,10 +123,20 @@ void* applyCommands(){
             continue;
         }
 
-        char token, type;
+        char type, token;
         char name[MAX_INPUT_SIZE];
+        char dir1[MAX_INPUT_SIZE];
+        char dir2[MAX_INPUT_SIZE];
+        int numTokens;
 
-        int numTokens = sscanf(command, "%c %s %c", &token, name, &type);
+        if (command[0] == 'm') {
+            numTokens = sscanf(command, "%c %s %s", &token, dir1, dir2);
+        }
+        else {
+            numTokens = sscanf(command, "%c %s %c", &token, name, &type);
+        }
+
+        // numTokens = sscanf(command, "%c %s %c", &token, name, &type);
 
         if (numTokens < 2) {
             fprintf(stderr, "Error: invalid command in Queue\n");
@@ -148,6 +180,11 @@ void* applyCommands(){
                 delete(name);
 
                 break;
+
+            case 'm':
+                move(dir1, dir2);
+                break;
+                
             default: { /* error */
                 fprintf(stderr, "Error: command to apply\n");
                 exit(EXIT_FAILURE);
@@ -188,8 +225,7 @@ int main(int argc, char* argv[]) {
     processInput(argv[1]);
     numberThreads = atoi(argv[3]);
     pthread_t tid[numberThreads];
-    
-    
+
     gettimeofday(&t0, NULL);
     for (int i=0; i < numberThreads; i++) {
         if (pthread_create(&(tid[i]), NULL, applyCommands, NULL) != 0) {

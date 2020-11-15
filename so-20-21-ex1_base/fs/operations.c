@@ -2,9 +2,8 @@
 #include "state.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include <pthread.h>
 #include <string.h>
-
-inode_t inode_table = inode_table_get();
 
 /* Given a path, fills pointers with strings for the parent path and child
  * file name
@@ -136,7 +135,7 @@ int create(char *name, type nodeType){
 	}
 
 	//WRITE LOCK
-	pthread_rwlock_wrlock(&inode_table[parent_inumber].rwl);
+	// pthread_rwlock_wrlock(&inode_table[parent_inumber].rwl);
 
 	inode_get(parent_inumber, &pType, &pdata);
 
@@ -263,7 +262,7 @@ int lookup(char *name) {
 	/* get root inode data */
 
 	//READ LOCK
-	pthread_rwlock_rdlock(&inode_table[current_inumber].rwl);
+	// pthread_rwlock_rdlock(&inode_table[current_inumber].rwl);
 
 	inode_get(current_inumber, &nType, &data);
 
@@ -272,13 +271,22 @@ int lookup(char *name) {
 	/* search for all sub nodes */
 	while (path != NULL && (current_inumber = lookup_sub_node(path, data.dirEntries)) != FAIL) {
 		//READ LOCK
-		pthread_rwlock_rdlock(&inode_table[current_inumber].rwl);
+		// pthread_rwlock_rdlock(&inode_table[current_inumber].rwl);
 
 		inode_get(current_inumber, &nType, &data);
 		path = strtok_r(NULL, delim, &saveptr);
 	}
 
 	return current_inumber;
+}
+
+int move(char* dir1, char* dir2){
+	printf("DELETE: %s\n", dir1);
+	printf("CREATE: %s\n", dir2);
+
+	delete(dir1);
+	create(dir2, T_FILE);
+	return SUCCESS;
 }
 
 

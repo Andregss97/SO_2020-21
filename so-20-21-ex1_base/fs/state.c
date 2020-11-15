@@ -43,11 +43,6 @@ void inode_table_destroy() {
     }
 }
 
-inode_t inode_table_get(){
-    return inode_table;
-
-}
-
 /*
  * Creates a new i-node in the table with the given information.
  * Input:
