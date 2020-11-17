@@ -9,6 +9,7 @@
 
 #define MAX_COMMANDS 150000
 #define MAX_INPUT_SIZE 100
+#define MAX_LOCKS 50        //same as inode_table size
 
 int numberThreads = 0;
 
@@ -113,7 +114,6 @@ void processInput(char* filename){
 
 void* applyCommands(){
 
-
     while (numberCommands > 0){
 
         const char* command = removeCommand();
@@ -127,6 +127,8 @@ void* applyCommands(){
         char file1[MAX_INPUT_SIZE];
         char file2[MAX_INPUT_SIZE];
         int numTokens;
+
+        int* buffer_locks = malloc(MAX_LOCKS * sizeof(int));
 
         if (command[0] == 'm') {
             numTokens = sscanf(command, "%c %s %s", &token, file1, file2);
@@ -150,12 +152,12 @@ void* applyCommands(){
                     case 'f':
                          
                         //printf("Create file: %s\n", name);
-                        create(name, T_FILE);
+                        create(name, T_FILE, buffer_locks);
                         break;
                     case 'd':
                          
                         //printf("Create directory: %s\n", name);
-                        create(name, T_DIRECTORY);
+                        create(name, T_DIRECTORY, buffer_locks);
                         break;
                     default:
                         fprintf(stderr, "Error: invalid node type\n");
@@ -164,7 +166,7 @@ void* applyCommands(){
                 break;
             case 'l':
                 
-                lookup(name);
+                lookup(name, buffer_locks);
                  
                 //if (searchResult >= 0)
                     //printf("Search: %s found\n", name);
@@ -176,12 +178,12 @@ void* applyCommands(){
             case 'd':
 
                 //printf("Delete: %s\n", name);
-                delete(name);
+                delete(name, buffer_locks);
 
                 break;
 
             case 'm':
-                move(file1, file2);
+                move(file1, file2, buffer_locks);
                 break;
                 
             default: { /* error */

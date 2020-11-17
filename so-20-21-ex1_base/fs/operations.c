@@ -115,7 +115,7 @@ int lookup_sub_node(char *name, DirEntry *entries) {
  *  - nodeType: type of node
  * Returns: SUCCESS or FAIL
  */
-int create(char *name, type nodeType){
+int create(char *name, type nodeType, int* buffer){
 
 	int parent_inumber, child_inumber;
 	char *parent_name, *child_name, name_copy[MAX_FILE_NAME];
@@ -126,7 +126,7 @@ int create(char *name, type nodeType){
 	strcpy(name_copy, name);
 	split_parent_child_from_path(name_copy, &parent_name, &child_name);
 
-	parent_inumber = lookup(parent_name);
+	parent_inumber = lookup(parent_name, buffer);
 
 	if (parent_inumber == FAIL) {
 		//printf("failed to create %s, invalid parent dir %s\n",
@@ -173,7 +173,7 @@ int create(char *name, type nodeType){
  *  - name: path of node
  * Returns: SUCCESS or FAIL
  */
-int delete(char *name){
+int delete(char *name, int* buffer){
 
 	int parent_inumber, child_inumber;
 	char *parent_name, *child_name, name_copy[MAX_FILE_NAME];
@@ -184,7 +184,7 @@ int delete(char *name){
 	strcpy(name_copy, name);
 	split_parent_child_from_path(name_copy, &parent_name, &child_name);
 
-	parent_inumber = lookup(parent_name);
+	parent_inumber = lookup(parent_name, buffer);
 
 	if (parent_inumber == FAIL) {
 		//printf("failed to delete %s, invalid parent dir %s\n",
@@ -241,10 +241,11 @@ int delete(char *name){
  *  inumber: identifier of the i-node, if found
  *     FAIL: otherwise
  */
-int lookup(char *name) {
+int lookup(char *name, int *buffer) {
 	char full_path[MAX_FILE_NAME];
 	char delim[] = "/";
 	char* saveptr;
+	int var = 0;
 
 	strcpy(full_path, name);
 
@@ -259,7 +260,7 @@ int lookup(char *name) {
 	/* get root inode data */
 
 	inode_get(current_inumber, &nType, &data);
-	inode_get_lock(current_inumber, &rwl);
+	inode_get_lock(current_inumber,&nType, &data, &rwl);
 
 	char *path = strtok_r(full_path, delim, &saveptr);
 
@@ -267,18 +268,27 @@ int lookup(char *name) {
 	while (path != NULL && (current_inumber = lookup_sub_node(path, data.dirEntries)) != FAIL) {
 		//READ LOCK
 		pthread_rwlock_rdlock(rwl);
+		buffer[var++] = current_inumber;
+		
+		
 
 		inode_get(current_inumber, &nType, &data);
+
 		path = strtok_r(NULL, delim, &saveptr);
+
+		for (int i=0; i<var; i++){
+			inode_get_lock(buffer[i], &nType, &data, &rwl);
+			pthread_rwlock_unlock(rwl);
+		}
 	}
 
 	return current_inumber;
 }
 
-int move(char* name1, char* name2){
+int move(char* name1, char* name2, int* buffer){
 	
-	delete(name1);
-	create(name2, T_FILE);
+	delete(name1, buffer);
+	create(name2, T_FILE, buffer);
 	return SUCCESS;
 }
 

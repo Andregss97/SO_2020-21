@@ -139,7 +139,7 @@ int inode_get(int inumber, type *nType, union Data *data) {
  *  - rwl: pointer to pthread_rwlock_t
  * Returns: SUCCESS or FAIL
  */
-int inode_get_lock(int inumber, pthread_rwlock_t **rwl) {
+int inode_get_lock(int inumber, type *nType, union Data *data, pthread_rwlock_t **rwl) {
     /* Used for testing synchronization speedup */
     insert_delay(DELAY);
 
