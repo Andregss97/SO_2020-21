@@ -132,6 +132,31 @@ int inode_get(int inumber, type *nType, union Data *data) {
 
 
 /*
+ * Copies the contents of the i-node into the arguments.
+ * Only the fields referenced by non-null arguments are copied.
+ * Input:
+ *  - inumber: identifier of the i-node
+ *  - rwl: pointer to pthread_rwlock_t
+ * Returns: SUCCESS or FAIL
+ */
+int inode_get_lock(int inumber, pthread_rwlock_t *rwl) {
+    /* Used for testing synchronization speedup */
+    insert_delay(DELAY);
+
+    if ((inumber < 0) || (inumber > INODE_TABLE_SIZE) || (inode_table[inumber].nodeType == T_NONE)) {
+        printf("inode_get: invalid inumber %d\n", inumber);
+        return FAIL;
+    }
+
+    if (rwl)
+        *rwl = inode_table[inumber].rwl;
+
+    return SUCCESS;
+}
+
+
+
+/*
  * Resets an entry for a directory.
  * Input:
  *  - inumber: identifier of the i-node

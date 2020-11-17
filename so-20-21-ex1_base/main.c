@@ -52,7 +52,6 @@ void processInput(char* filename){
         char file1[MAX_INPUT_SIZE];
         char file2[MAX_INPUT_SIZE];
         int numTokens;
-        printf("LINE: %c\n", line[0]);
         if (strcmp(&line[0], "m") == 0) {
             numTokens = sscanf(line, "%c %s %s", &token, file1, file2);
         }
@@ -218,7 +217,6 @@ int main(int argc, char* argv[]) {
     struct timeval t0, t1, totalT;
     /* init filesystem */
     init_fs();
-
     /* process input and print tree */
     verify_inputs(argc, argv);
     /* argv[1] aka inputfile given as atribute */

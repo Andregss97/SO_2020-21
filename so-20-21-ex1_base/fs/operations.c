@@ -5,6 +5,8 @@
 #include <pthread.h>
 #include <string.h>
 
+pthread_rwlock_t* buffer[];
+
 /* Given a path, fills pointers with strings for the parent path and child
  * file name
  * Input:
@@ -134,9 +136,6 @@ int create(char *name, type nodeType){
 		return FAIL;
 	}
 
-	//WRITE LOCK
-	// pthread_rwlock_wrlock(&inode_table[parent_inumber].rwl);
-
 	inode_get(parent_inumber, &pType, &pdata);
 
 	if(pType != T_DIRECTORY) {
@@ -153,7 +152,6 @@ int create(char *name, type nodeType){
 
 	/* create node and add entry to folder that contains new node */
 
-	//TODO LOCK
 	child_inumber = inode_create(nodeType);
 	if (child_inumber == FAIL) {
 		//printf("failed to create %s in  %s, couldn't allocate inode\n",
@@ -258,20 +256,19 @@ int lookup(char *name) {
 	/* use for copy */
 	type nType;
 	union Data data;
+	pthread_rwlock_t rwl;
 
 	/* get root inode data */
 
-	//READ LOCK
-	// pthread_rwlock_rdlock(&inode_table[current_inumber].rwl);
-
 	inode_get(current_inumber, &nType, &data);
+	inode_get_lock(current_inumber, &rwl);
 
 	char *path = strtok_r(full_path, delim, &saveptr);
 
 	/* search for all sub nodes */
 	while (path != NULL && (current_inumber = lookup_sub_node(path, data.dirEntries)) != FAIL) {
 		//READ LOCK
-		// pthread_rwlock_rdlock(&inode_table[current_inumber].rwl);
+		pthread_rwlock_rdlock(&rwl);
 
 		inode_get(current_inumber, &nType, &data);
 		path = strtok_r(NULL, delim, &saveptr);
@@ -280,12 +277,10 @@ int lookup(char *name) {
 	return current_inumber;
 }
 
-int move(char* dir1, char* dir2){
-	printf("DELETE: %s\n", dir1);
-	printf("CREATE: %s\n", dir2);
-
-	delete(dir1);
-	create(dir2, T_FILE);
+int move(char* name1, char* name2){
+	
+	delete(name1);
+	create(name2, T_FILE);
 	return SUCCESS;
 }
 
