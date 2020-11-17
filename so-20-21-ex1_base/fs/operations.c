@@ -5,8 +5,6 @@
 #include <pthread.h>
 #include <string.h>
 
-pthread_rwlock_t* buffer[];
-
 /* Given a path, fills pointers with strings for the parent path and child
  * file name
  * Input:
@@ -256,7 +254,7 @@ int lookup(char *name) {
 	/* use for copy */
 	type nType;
 	union Data data;
-	pthread_rwlock_t rwl;
+	pthread_rwlock_t *rwl;
 
 	/* get root inode data */
 
@@ -268,7 +266,7 @@ int lookup(char *name) {
 	/* search for all sub nodes */
 	while (path != NULL && (current_inumber = lookup_sub_node(path, data.dirEntries)) != FAIL) {
 		//READ LOCK
-		pthread_rwlock_rdlock(&rwl);
+		pthread_rwlock_rdlock(rwl);
 
 		inode_get(current_inumber, &nType, &data);
 		path = strtok_r(NULL, delim, &saveptr);
