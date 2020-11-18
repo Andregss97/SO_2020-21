@@ -1,0 +1,30 @@
+Search: a/b found
+Search: a/x found
+Search: a/x/y found
+Search: a/x/y/z not found
+Delete: a/x
+could not delete a/x: is a directory and not empty
+Search: a/x found
+Search: a/x/y found
+TecnicoFS completed in 0.1008 seconds.
+
+Search: a/b found
+Search: a/x found
+Search: a/x/y found
+Delete: a/x
+Search: a/x/y/z not found
+could not delete a/x: is a directory and not empty
+Search: a/x/y found
+Search: a/x found
+TecnicoFS completed in 0.0941 seconds.
+
+Search: a/b found
+Search: a/x found
+Search: a/x/y found
+Search: a/x/y/z not found
+Delete: a/x
+could not delete a/x: is a directory and not empty
+Search: a/x found
+Search: a/x/y found
+TecnicoFS completed in 0.0962 seconds.
+

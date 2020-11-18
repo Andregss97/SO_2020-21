@@ -63,10 +63,7 @@ int inode_create(type nType, int* buffer, int* count) {
 	        pthread_rwlock_t *rwl;
             inode_get_lock(inumber, &rwl);
 	        pthread_rwlock_wrlock(rwl);
-            printf("[%ld] Write Lock no iNode filho: %d  (CREATE)\n", pthread_self(), inumber);
-	        printf("[%ld] Buffer counter: %d\n", pthread_self(), *count);
 	        buffer[(*count)++] = inumber;
-	        printf("[%ld] Buffer counter [after]: %d\n", pthread_self(), *count);
             inode_table[inumber].nodeType = nType;
 
             if (nType == T_DIRECTORY) {
@@ -80,7 +77,6 @@ int inode_create(type nType, int* buffer, int* count) {
             else {
                 inode_table[inumber].data.fileContents = NULL;
             }
-            printf("[%ld] Child iNumber is: %d\n", pthread_self(), inumber);
             return inumber;
         }
     }
@@ -121,7 +117,6 @@ int inode_delete(int inumber) {
 int inode_get(int inumber, type *nType, union Data *data) {
     /* Used for testing synchronization speedup */
     insert_delay(DELAY);
-    printf("\t[%ld] Get iNode %d\n", pthread_self(), inumber);
 
     if ((inumber < 0) || (inumber > INODE_TABLE_SIZE) || (inode_table[inumber].nodeType == T_NONE)) {
         printf("inode_get: invalid inumber %d\n", inumber);

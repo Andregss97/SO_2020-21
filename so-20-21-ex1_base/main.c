@@ -148,21 +148,19 @@ void* applyCommands(){
             exit(EXIT_FAILURE);
         }
 
-        //int searchResult;
+        int searchResult;
         switch (token) {
             case 'c':
 
                 switch (type) {
                     case 'f':
                          
-                        //printf("Create file: %s\n", name);
-                        printf("CREATE: buffer %d %d %d %d %d\n", buffer_locks[0], buffer_locks[1], buffer_locks[2], buffer_locks[3], buffer_locks[4]);
+                        printf("Create file: %s\n", name);
                         create(name, T_FILE, buffer_locks);
                         break;
                     case 'd':
                          
-                        //printf("Create directory: %s\n", name);
-                        printf("CREATE: buffer %d %d %d %d %d\n", buffer_locks[0], buffer_locks[1], buffer_locks[2], buffer_locks[3], buffer_locks[4]);
+                        printf("Create directory: %s\n", name);
                         create(name, T_DIRECTORY, buffer_locks);
                         break;
                     default:
@@ -172,30 +170,26 @@ void* applyCommands(){
                 break;
             case 'l':
                 
-                printf("LOOKUP: buffer %d %d %d %d %d\n", buffer_locks[0], buffer_locks[1], buffer_locks[2], buffer_locks[3], buffer_locks[4]);
-                lookup(name, buffer_locks, LOOKUP, count);
+                searchResult = lookup(name, buffer_locks, LOOKUP, count);
 
                 for (int i=0; i < *count; i++){
                     inode_get_lock(buffer_locks[i], &rwl);
                     pthread_rwlock_unlock(rwl);
-                    printf("\t[%ld] Buffer index: %d // UnLock no iNode: %d\n", pthread_self(), i, buffer_locks[i]);
                 }
 
-                printf("[%ld] DOES FREE lookup\n", pthread_self());
                 free(buffer_locks);
 
                  
-                //if (searchResult >= 0)
-                    //printf("Search: %s found\n", name);
-                //else
-                    //printf("Search: %s not found\n", name);
+                if (searchResult >= 0)
+                    printf("Search: %s found\n", name);
+                else
+                    printf("Search: %s not found\n", name);
                 
                 break;
             
             case 'd':
 
-                //printf("Delete: %s\n", name);
-                printf("DELETE: buffer %d %d %d %d %d\n", buffer_locks[0], buffer_locks[1], buffer_locks[2], buffer_locks[3], buffer_locks[4]);
+                printf("Delete: %s\n", name);
                 delete(name, buffer_locks);
 
                 break;
@@ -208,9 +202,7 @@ void* applyCommands(){
                 fprintf(stderr, "Error: command to apply\n");
                 exit(EXIT_FAILURE);
             }
-        }
-        // printf("DOES FREE");
-    
+        }    
     }
     return NULL;
 }
@@ -262,7 +254,7 @@ int main(int argc, char* argv[]) {
     gettimeofday(&t1, NULL);
     timersub(&t1, &t0, &totalT);
 
-    printf("TecnicoFS completed in %ld.%04ld seconds.\n\n", totalT.tv_sec, totalT.tv_usec);
+    printf("TecnicoFS completed in %ld.%04ld seconds.\n", totalT.tv_sec, totalT.tv_usec);
     
     FILE *stdout = fopen(argv[2],"w");
     print_tecnicofs_tree(stdout);
