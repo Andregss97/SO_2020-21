@@ -156,11 +156,13 @@ void* applyCommands(){
                     case 'f':
                          
                         //printf("Create file: %s\n", name);
+                        printf("CREATE: buffer %d %d %d %d %d\n", buffer_locks[0], buffer_locks[1], buffer_locks[2], buffer_locks[3], buffer_locks[4]);
                         create(name, T_FILE, buffer_locks);
                         break;
                     case 'd':
                          
                         //printf("Create directory: %s\n", name);
+                        printf("CREATE: buffer %d %d %d %d %d\n", buffer_locks[0], buffer_locks[1], buffer_locks[2], buffer_locks[3], buffer_locks[4]);
                         create(name, T_DIRECTORY, buffer_locks);
                         break;
                     default:
@@ -170,15 +172,16 @@ void* applyCommands(){
                 break;
             case 'l':
                 
+                printf("LOOKUP: buffer %d %d %d %d %d\n", buffer_locks[0], buffer_locks[1], buffer_locks[2], buffer_locks[3], buffer_locks[4]);
                 lookup(name, buffer_locks, LOOKUP, count);
-                
+
                 for (int i=0; i < *count; i++){
                     inode_get_lock(buffer_locks[i], &rwl);
                     pthread_rwlock_unlock(rwl);
-                    printf("\tBuffer index: %d // UnLock no iNode: %d\n", i, buffer_locks[i]);
+                    printf("\t[%ld] Buffer index: %d // UnLock no iNode: %d\n", pthread_self(), i, buffer_locks[i]);
                 }
 
-                printf("DOES FREE\n");
+                printf("[%ld] DOES FREE lookup\n", pthread_self());
                 free(buffer_locks);
 
                  
@@ -192,6 +195,7 @@ void* applyCommands(){
             case 'd':
 
                 //printf("Delete: %s\n", name);
+                printf("DELETE: buffer %d %d %d %d %d\n", buffer_locks[0], buffer_locks[1], buffer_locks[2], buffer_locks[3], buffer_locks[4]);
                 delete(name, buffer_locks);
 
                 break;
