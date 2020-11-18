@@ -174,6 +174,8 @@ void* applyCommands(){
                     inode_get_lock(buffer_locks[i], &rwl);
                     pthread_rwlock_unlock(rwl);
                 }
+
+                free(buffer_locks);
                  
                 //if (searchResult >= 0)
                     //printf("Search: %s found\n", name);
@@ -198,7 +200,7 @@ void* applyCommands(){
                 exit(EXIT_FAILURE);
             }
         }
-
+    
     }
     return NULL;
 }

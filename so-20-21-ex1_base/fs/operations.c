@@ -122,6 +122,8 @@ int create(char *name, type nodeType, int* buffer){
 	/* use for copy */
 	type pType;
 	union Data pdata;
+	pthread_rwlock_t *rwl;
+
 
 	strcpy(name_copy, name);
 	split_parent_child_from_path(name_copy, &parent_name, &child_name);
@@ -163,13 +165,15 @@ int create(char *name, type nodeType, int* buffer){
 		return FAIL;
 	}
 
-	pthread_rwlock_t *rwl;
 
 	for (int i=0; i < INODE_TABLE_SIZE; i++){
 		inode_get_lock(buffer[i], &rwl);
 		pthread_rwlock_unlock(rwl);
 		printf(" UnLock no iNode: %d, %d\n", buffer[i], i);
 	}
+
+	free(buffer);
+
 
 	return SUCCESS;
 }
@@ -188,6 +192,8 @@ int delete(char *name, int* buffer){
 	/* use for copy */
 	type pType, cType;
 	union Data pdata, cdata;
+	pthread_rwlock_t *rwl;
+
 
 	strcpy(name_copy, name);
 	split_parent_child_from_path(name_copy, &parent_name, &child_name);
@@ -237,13 +243,15 @@ int delete(char *name, int* buffer){
 		return FAIL;
 	}
 
-	pthread_rwlock_t *rwl;
 
 	for (int i=0; i < INODE_TABLE_SIZE; i++){
 		inode_get_lock(buffer[i], &rwl);
 		pthread_rwlock_unlock(rwl);
 		printf(" UnLock no iNode: %d, %d\n", buffer[i], i);
 	}
+
+	free(buffer);
+
 
 	return SUCCESS;
 }
