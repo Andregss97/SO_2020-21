@@ -22,6 +22,10 @@ void insert_delay(int cycles) {
  */
 void inode_table_init() {
     for (int i = 0; i < INODE_TABLE_SIZE; i++) {
+        if (pthread_rwlock_init(&inode_table[i].rwl, NULL) != 0) { 
+            fprintf(stderr, "Error: the rwlock failed to initialize\n");
+            exit(EXIT_FAILURE);
+        }
         inode_table[i].nodeType = T_NONE;
         inode_table[i].data.dirEntries = NULL;
         inode_table[i].data.fileContents = NULL;
@@ -51,18 +55,19 @@ void inode_table_destroy() {
  *  inumber: identifier of the new i-node, if successfully created
  *     FAIL: if an error occurs
  */
-int inode_create(type nType) {
+int inode_create(type nType, int* buffer, int* count) {
     /* Used for testing synchronization speedup */
     insert_delay(DELAY);
 
     for (int inumber = 0; inumber < INODE_TABLE_SIZE; inumber++) {
         if (inode_table[inumber].nodeType == T_NONE) {
+	        pthread_rwlock_t *rwl;
+            inode_get_lock(inumber, &rwl);
+	        pthread_rwlock_wrlock(rwl);
+	        printf("Buffer counter: %d\n", *count);
+	        buffer[(*count)++] = inumber;
+	        printf("Buffer counter [after]: %d\n", *count);
             inode_table[inumber].nodeType = nType;
-
-            if (pthread_rwlock_init(&inode_table[inumber].rwl, NULL) != 0) { 
-                fprintf(stderr, "Error: the rwlock failed to initialize\n");
-                exit(EXIT_FAILURE);
-            }
 
             if (nType == T_DIRECTORY) {
                 /* Initializes entry table */
@@ -75,6 +80,7 @@ int inode_create(type nType) {
             else {
                 inode_table[inumber].data.fileContents = NULL;
             }
+            printf("Child iNumber is: %d\n", inumber);
             return inumber;
         }
     }
@@ -144,7 +150,7 @@ int inode_get_lock(int inumber, pthread_rwlock_t **rwl) {
     /* Used for testing synchronization speedup */
     insert_delay(DELAY);
 
-    if ((inumber < 0) || (inumber > INODE_TABLE_SIZE) || (inode_table[inumber].nodeType == T_NONE)) {
+    if ((inumber < 0) || (inumber > INODE_TABLE_SIZE)) {
         printf("inode_get: invalid inumber %d\n", inumber);
         return FAIL;
     }

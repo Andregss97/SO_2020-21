@@ -131,6 +131,8 @@ void* applyCommands(){
         pthread_rwlock_t *rwl;
 
         int* buffer_locks = malloc(MAX_LOCKS * sizeof(int));
+        int i = 0;
+        int* count = &i;
 
         if (command[0] == 'm') {
             numTokens = sscanf(command, "%c %s %s", &token, file1, file2);
@@ -168,14 +170,15 @@ void* applyCommands(){
                 break;
             case 'l':
                 
-                lookup(name, buffer_locks, LOOKUP);
-
-                for (int i=0; i < MAX_LOCKS; i++){
+                lookup(name, buffer_locks, LOOKUP, count);
+                
+                for (int i=0; i < *count; i++){
                     inode_get_lock(buffer_locks[i], &rwl);
                     pthread_rwlock_unlock(rwl);
+                    printf("\tBuffer index: %d // UnLock no iNode: %d\n", i, buffer_locks[i]);
                 }
-                
-                printf("DOES FREE");
+
+                printf("DOES FREE\n");
                 free(buffer_locks);
 
                  

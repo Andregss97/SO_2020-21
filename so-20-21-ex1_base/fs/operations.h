@@ -11,7 +11,7 @@ void destroy_fs();
 int is_dir_empty(DirEntry *dirEntries);
 int create(char *name, type nodeType, int* buffer);
 int delete(char *name, int* buffer);
-int lookup(char *name, int *buffer, int flag);
+int lookup(char *name, int *buffer, int flag, int* count);
 int move(char *name1, char* name2, int* buffer);
 void print_tecnicofs_tree(FILE *fp);
 
