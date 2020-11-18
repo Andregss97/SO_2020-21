@@ -273,28 +273,23 @@ int lookup(char *name, int *buffer, int flag) {
 	union Data data;
 	pthread_rwlock_t *rwl;
 
+	/* get root inode data */
+	inode_get(current_inumber, &nType, &data);
+
 	char *path = strtok_r(full_path, delim, &saveptr);
-	if (path) {
-		/* get root inode data */
+	if (path){
+		//READ LOCK
 		inode_get_lock(current_inumber, &rwl);
 		pthread_rwlock_rdlock(rwl);
-		printf(" Read Lock no [primeiro] iNode: %d\n", current_inumber);
-		buffer[var++] = current_inumber;
-		inode_get(current_inumber, &nType, &data);
+		printf(" Read Lock no iNode: %d\n", current_inumber);
+		buffer[var++] = current_inumber;	
 	}
-	else if (flag == DELETE || flag== CREATE) {
-		inode_get_lock(current_inumber, &rwl);
-		pthread_rwlock_wrlock(rwl);
-		printf("Write Lock no [último] iNode: %d  (DELETE/CREATE)\n", current_inumber);
-		buffer[var++] = current_inumber;
-	}
-
 
 	/* search for all sub nodes */
 	while (path != NULL && (current_inumber = lookup_sub_node(path, data.dirEntries)) != FAIL) {
 		printf("\tEntrou no ciclo WHILE com current_inumber %d\n", current_inumber);
+		inode_get(current_inumber, &nType, &data);
 		path = strtok_r(NULL, delim, &saveptr);
-		
 		if (path) {
 			//READ LOCK
 			inode_get_lock(current_inumber, &rwl);
@@ -302,29 +297,20 @@ int lookup(char *name, int *buffer, int flag) {
 			printf(" Read Lock no iNode: %d\n", current_inumber);
 			buffer[var++] = current_inumber;	
 		}
-		else if (flag == DELETE || flag== CREATE) {
-			inode_get_lock(current_inumber, &rwl);
-			pthread_rwlock_wrlock(rwl);
-			printf("Write Lock no [último] iNode: %d  (DELETE/CREATE)\n", current_inumber);
-			buffer[var++] = current_inumber;
-		}
-
-		inode_get(current_inumber, &nType, &data);
-
 	}
 
-	// if(flag == LOOKUP){
-	// 	inode_get_lock(current_inumber, &rwl);
-	// 	pthread_rwlock_rdlock(rwl);
-	// 	printf("Read Lock no [último] iNode: %d  (LOOKUP)\n", current_inumber);
-	// 	buffer[var++] = current_inumber;
-	// }
-	// else if(flag == DELETE || flag== CREATE){
-	// 	inode_get_lock(current_inumber, &rwl);
-	// 	pthread_rwlock_wrlock(rwl);
-	// 	printf("Write Lock no [último] iNode: %d  (DELETE/CREATE)\n", current_inumber);
-	// 	buffer[var++] = current_inumber;
-	// }
+	if(flag == LOOKUP){
+		inode_get_lock(current_inumber, &rwl);
+		pthread_rwlock_rdlock(rwl);
+		printf("Read Lock no [último] iNode: %d  (LOOKUP)\n", current_inumber);
+		buffer[var++] = current_inumber;
+	}
+	else if(flag == DELETE || flag== CREATE){
+		inode_get_lock(current_inumber, &rwl);
+		pthread_rwlock_wrlock(rwl);
+		printf("Write Lock no [último] iNode: %d  (DELETE/CREATE)\n", current_inumber);
+		buffer[var++] = current_inumber;
+	}
 
 	return current_inumber;
 }

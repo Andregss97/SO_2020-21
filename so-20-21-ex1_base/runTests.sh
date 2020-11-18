@@ -1,7 +1,7 @@
 #!/bin/bash
 
 mkdir $2
-for input in $1/*.txt
+for input in $1/test1.txt
 do
  for NumThreads in $(seq 1 $3)
  do
