@@ -100,10 +100,10 @@ int lookup_sub_node(char *name, DirEntry *entries) {
 		return FAIL;
 	}
 	for (int i = 0; i < MAX_DIR_ENTRIES; i++) {
-        if (entries[i].inumber != FREE_INODE && strcmp(entries[i].name, name) == 0) {
-            return entries[i].inumber;
-        }
-    }
+		if (entries[i].inumber != FREE_INODE && strcmp(entries[i].name, name) == 0) {
+			return entries[i].inumber;
+		}
+	}
 	return FAIL;
 }
 
@@ -165,9 +165,10 @@ int create(char *name, type nodeType, int* buffer){
 
 	pthread_rwlock_t *rwl;
 
-	for (int i=0; &buffer[i] != NULL; i++){
-			inode_get_lock(buffer[i], &pType, &pdata, &rwl);
-			pthread_rwlock_unlock(rwl);
+	for (int i=0; i < INODE_TABLE_SIZE; i++){
+		inode_get_lock(buffer[i], &rwl);
+		pthread_rwlock_unlock(rwl);
+		printf(" UnLock no iNode: %d, %d\n", buffer[i], i);
 	}
 
 	return SUCCESS;
@@ -238,9 +239,10 @@ int delete(char *name, int* buffer){
 
 	pthread_rwlock_t *rwl;
 
-	for (int i=0; &buffer[i] != NULL; i++){
-			inode_get_lock(buffer[i], &pType, &pdata, &rwl);
-			pthread_rwlock_unlock(rwl);
+	for (int i=0; i < INODE_TABLE_SIZE; i++){
+		inode_get_lock(buffer[i], &rwl);
+		pthread_rwlock_unlock(rwl);
+		printf(" UnLock no iNode: %d, %d\n", buffer[i], i);
 	}
 
 	return SUCCESS;
@@ -271,38 +273,58 @@ int lookup(char *name, int *buffer, int flag) {
 	union Data data;
 	pthread_rwlock_t *rwl;
 
-	/* get root inode data */
-
-	inode_get_lock(current_inumber,&nType, &data, &rwl);
-
-	pthread_rwlock_rdlock(rwl);
-	buffer[var++] = current_inumber;
-
-	inode_get(current_inumber, &nType, &data);
-
 	char *path = strtok_r(full_path, delim, &saveptr);
+	if (path) {
+		/* get root inode data */
+		inode_get_lock(current_inumber, &rwl);
+		pthread_rwlock_rdlock(rwl);
+		printf(" Read Lock no [primeiro] iNode: %d\n", current_inumber);
+		buffer[var++] = current_inumber;
+		inode_get(current_inumber, &nType, &data);
+	}
+	else if (flag == DELETE || flag== CREATE) {
+		inode_get_lock(current_inumber, &rwl);
+		pthread_rwlock_wrlock(rwl);
+		printf("Write Lock no [último] iNode: %d  (DELETE/CREATE)\n", current_inumber);
+		buffer[var++] = current_inumber;
+	}
+
 
 	/* search for all sub nodes */
 	while (path != NULL && (current_inumber = lookup_sub_node(path, data.dirEntries)) != FAIL) {
-		//READ LOCK
-
-		pthread_rwlock_rdlock(rwl);
-		buffer[var++] = current_inumber;	
+		printf("\tEntrou no ciclo WHILE com current_inumber %d\n", current_inumber);
+		path = strtok_r(NULL, delim, &saveptr);
+		
+		if (path) {
+			//READ LOCK
+			inode_get_lock(current_inumber, &rwl);
+			pthread_rwlock_rdlock(rwl);
+			printf(" Read Lock no iNode: %d\n", current_inumber);
+			buffer[var++] = current_inumber;	
+		}
+		else if (flag == DELETE || flag== CREATE) {
+			inode_get_lock(current_inumber, &rwl);
+			pthread_rwlock_wrlock(rwl);
+			printf("Write Lock no [último] iNode: %d  (DELETE/CREATE)\n", current_inumber);
+			buffer[var++] = current_inumber;
+		}
 
 		inode_get(current_inumber, &nType, &data);
 
-		path = strtok_r(NULL, delim, &saveptr);
-
 	}
 
-	if(flag == LOOKUP){
-		pthread_rwlock_rdlock(rwl);
-		buffer[var++] = current_inumber;
-	}
-	else if(flag == DELETE || flag== CREATE){
-		pthread_rwlock_wrlock(rwl);
-		buffer[var++] = current_inumber;
-	}
+	// if(flag == LOOKUP){
+	// 	inode_get_lock(current_inumber, &rwl);
+	// 	pthread_rwlock_rdlock(rwl);
+	// 	printf("Read Lock no [último] iNode: %d  (LOOKUP)\n", current_inumber);
+	// 	buffer[var++] = current_inumber;
+	// }
+	// else if(flag == DELETE || flag== CREATE){
+	// 	inode_get_lock(current_inumber, &rwl);
+	// 	pthread_rwlock_wrlock(rwl);
+	// 	printf("Write Lock no [último] iNode: %d  (DELETE/CREATE)\n", current_inumber);
+	// 	buffer[var++] = current_inumber;
+	// }
 
 	return current_inumber;
 }

@@ -5,6 +5,7 @@
 #include <string.h>
 #include <sys/time.h>
 #include <ctype.h>
+#include "tecnicofs-api-constants.h"
 #include "fs/operations.h"
 
 #define MAX_COMMANDS 150000
@@ -128,7 +129,6 @@ void* applyCommands(){
         char file2[MAX_INPUT_SIZE];
         int numTokens;
         pthread_rwlock_t *rwl;
-        union Data pdata;
 
         int* buffer_locks = malloc(MAX_LOCKS * sizeof(int));
 
@@ -170,9 +170,8 @@ void* applyCommands(){
                 
                 lookup(name, buffer_locks, LOOKUP);
 
-
-                for (int i=0; &buffer_locks[i] != NULL; i++){
-                    inode_get_lock(buffer_locks[i], , &pdata, &rwl);
+                for (int i=0; i < MAX_LOCKS; i++){
+                    inode_get_lock(buffer_locks[i], &rwl);
                     pthread_rwlock_unlock(rwl);
                 }
                  
