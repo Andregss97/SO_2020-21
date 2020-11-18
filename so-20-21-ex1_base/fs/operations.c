@@ -172,7 +172,8 @@ int create(char *name, type nodeType, int* buffer){
 		printf(" UnLock no iNode: %d, %d\n", buffer[i], i);
 	}
 
-	free(buffer);
+	printf("DOES FREE");
+    free(buffer);
 
 
 	return SUCCESS;
@@ -250,7 +251,8 @@ int delete(char *name, int* buffer){
 		printf(" UnLock no iNode: %d, %d\n", buffer[i], i);
 	}
 
-	free(buffer);
+	printf("DOES FREE");
+    free(buffer);
 
 
 	return SUCCESS;
@@ -282,7 +284,7 @@ int lookup(char *name, int *buffer, int flag) {
 	pthread_rwlock_t *rwl;
 
 	/* get root inode data */
-	inode_get(current_inumber, &nType, &data);
+	
 
 	char *path = strtok_r(full_path, delim, &saveptr);
 	if (path){
@@ -291,12 +293,12 @@ int lookup(char *name, int *buffer, int flag) {
 		pthread_rwlock_rdlock(rwl);
 		printf(" Read Lock no iNode: %d\n", current_inumber);
 		buffer[var++] = current_inumber;	
+		inode_get(current_inumber, &nType, &data);
 	}
 
 	/* search for all sub nodes */
 	while (path != NULL && (current_inumber = lookup_sub_node(path, data.dirEntries)) != FAIL) {
 		printf("\tEntrou no ciclo WHILE com current_inumber %d\n", current_inumber);
-		inode_get(current_inumber, &nType, &data);
 		path = strtok_r(NULL, delim, &saveptr);
 		if (path) {
 			//READ LOCK
@@ -304,6 +306,7 @@ int lookup(char *name, int *buffer, int flag) {
 			pthread_rwlock_rdlock(rwl);
 			printf(" Read Lock no iNode: %d\n", current_inumber);
 			buffer[var++] = current_inumber;	
+			inode_get(current_inumber, &nType, &data);
 		}
 	}
 
