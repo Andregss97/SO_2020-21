@@ -127,6 +127,8 @@ void* applyCommands(){
         char file1[MAX_INPUT_SIZE];
         char file2[MAX_INPUT_SIZE];
         int numTokens;
+        pthread_rwlock_t *rwl;
+        union Data pdata;
 
         int* buffer_locks = malloc(MAX_LOCKS * sizeof(int));
 
@@ -166,7 +168,13 @@ void* applyCommands(){
                 break;
             case 'l':
                 
-                lookup(name, buffer_locks);
+                lookup(name, buffer_locks, LOOKUP);
+
+
+                for (int i=0; &buffer_locks[i] != NULL; i++){
+                    inode_get_lock(buffer_locks[i], , &pdata, &rwl);
+                    pthread_rwlock_unlock(rwl);
+                }
                  
                 //if (searchResult >= 0)
                     //printf("Search: %s found\n", name);

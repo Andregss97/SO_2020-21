@@ -126,7 +126,7 @@ int create(char *name, type nodeType, int* buffer){
 	strcpy(name_copy, name);
 	split_parent_child_from_path(name_copy, &parent_name, &child_name);
 
-	parent_inumber = lookup(parent_name, buffer);
+	parent_inumber = lookup(parent_name, buffer, CREATE);
 
 	if (parent_inumber == FAIL) {
 		//printf("failed to create %s, invalid parent dir %s\n",
@@ -163,6 +163,13 @@ int create(char *name, type nodeType, int* buffer){
 		return FAIL;
 	}
 
+	pthread_rwlock_t *rwl;
+
+	for (int i=0; &buffer[i] != NULL; i++){
+			inode_get_lock(buffer[i], &pType, &pdata, &rwl);
+			pthread_rwlock_unlock(rwl);
+	}
+
 	return SUCCESS;
 }
 
@@ -184,7 +191,7 @@ int delete(char *name, int* buffer){
 	strcpy(name_copy, name);
 	split_parent_child_from_path(name_copy, &parent_name, &child_name);
 
-	parent_inumber = lookup(parent_name, buffer);
+	parent_inumber = lookup(parent_name, buffer, DELETE);
 
 	if (parent_inumber == FAIL) {
 		//printf("failed to delete %s, invalid parent dir %s\n",
@@ -229,6 +236,13 @@ int delete(char *name, int* buffer){
 		return FAIL;
 	}
 
+	pthread_rwlock_t *rwl;
+
+	for (int i=0; &buffer[i] != NULL; i++){
+			inode_get_lock(buffer[i], &pType, &pdata, &rwl);
+			pthread_rwlock_unlock(rwl);
+	}
+
 	return SUCCESS;
 }
 
@@ -241,7 +255,7 @@ int delete(char *name, int* buffer){
  *  inumber: identifier of the i-node, if found
  *     FAIL: otherwise
  */
-int lookup(char *name, int *buffer) {
+int lookup(char *name, int *buffer, int flag) {
 	char full_path[MAX_FILE_NAME];
 	char delim[] = "/";
 	char* saveptr;
@@ -259,27 +273,35 @@ int lookup(char *name, int *buffer) {
 
 	/* get root inode data */
 
-	inode_get(current_inumber, &nType, &data);
 	inode_get_lock(current_inumber,&nType, &data, &rwl);
+
+	pthread_rwlock_rdlock(rwl);
+	buffer[var++] = current_inumber;
+
+	inode_get(current_inumber, &nType, &data);
 
 	char *path = strtok_r(full_path, delim, &saveptr);
 
 	/* search for all sub nodes */
 	while (path != NULL && (current_inumber = lookup_sub_node(path, data.dirEntries)) != FAIL) {
 		//READ LOCK
+
 		pthread_rwlock_rdlock(rwl);
-		buffer[var++] = current_inumber;
-		
-		
+		buffer[var++] = current_inumber;	
 
 		inode_get(current_inumber, &nType, &data);
 
 		path = strtok_r(NULL, delim, &saveptr);
 
-		for (int i=0; i<var; i++){
-			inode_get_lock(buffer[i], &nType, &data, &rwl);
-			pthread_rwlock_unlock(rwl);
-		}
+	}
+
+	if(flag == LOOKUP){
+		pthread_rwlock_rdlock(rwl);
+		buffer[var++] = current_inumber;
+	}
+	else if(flag == DELETE || flag== CREATE){
+		pthread_rwlock_wrlock(rwl);
+		buffer[var++] = current_inumber;
 	}
 
 	return current_inumber;
