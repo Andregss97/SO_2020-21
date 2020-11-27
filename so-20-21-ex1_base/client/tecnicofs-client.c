@@ -3,8 +3,6 @@
 #include "tecnicofs-client-api.h"
 #include "../tecnicofs-api-constants.h"
 
-#define SERVER "/tmp/server"
-
 FILE* inputFile;
 char* serverName;
 
@@ -56,14 +54,14 @@ void *processInput() {
                 }
                 switch (arg2[0]) {
                     case 'f':
-                        //res = tfsCreate(arg1, 'f');
+                        res = tfsCreate(arg1, 'f');
                         if (!res)
                           printf("Created file: %s\n", arg1);
                         else
                           printf("Unable to create file: %s\n", arg1);
                         break;
                     case 'd':
-                        //res = tfsCreate(arg1, 'd');
+                        res = tfsCreate(arg1, 'd');
                         if (!res)
                           printf("Created directory: %s\n", arg1);
                         else
@@ -112,18 +110,16 @@ void *processInput() {
 }
 
 int main(int argc, char* argv[]) {
-    //parseArgs(argc, argv);
+    parseArgs(argc, argv);
 
-    if (tfsMount(SERVER) == 0)
-      printf("Mounted! (socket = %s)\n", SERVER);
+    if (tfsMount(serverName) == 0)
+      printf("Mounted! (socket = %s)\n", serverName);
     else {
-      fprintf(stderr, "Unable to mount socket: %s\n", SERVER);
+      fprintf(stderr, "Unable to mount socket: %s\n", serverName);
       exit(EXIT_FAILURE);
     }
 
-    tfsCreate(argv[1]);
-
-    //processInput();
+    processInput();
 
     tfsUnmount();
 

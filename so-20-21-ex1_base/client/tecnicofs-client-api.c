@@ -6,7 +6,7 @@
 #include <sys/un.h>
 #include <stdio.h>
 
-#define CLIENT "/tmp/client"
+#define CLIENT "client"
 
 socklen_t servlen, clilen;
 struct sockaddr_un serv_addr, client_addr;
@@ -25,9 +25,9 @@ int setSockAddrUn(char *path, struct sockaddr_un *addr) {
   return SUN_LEN(addr);
 }
 
-int tfsCreate(/*char *filename, char nodeType*/const char *mensagem) {
+int tfsCreate(char *filename, char nodeType) {
 
-  if (sendto(sockfd, mensagem, strlen(mensagem)+1, 0, (struct sockaddr *) &serv_addr, servlen) < 0) {
+  if (sendto(sockfd, filename, strlen(filename)+1, 0, (struct sockaddr *) &serv_addr, servlen) < 0) {
       perror("client: sendto error");
       exit(EXIT_FAILURE);
   } 

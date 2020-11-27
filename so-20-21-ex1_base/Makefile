@@ -26,7 +26,7 @@ main.o: main.c fs/operations.h fs/state.h tecnicofs-api-constants.h
 
 clean:
 	@echo Cleaning...
-	rm -f fs/*.o *.o tecnicofs outputs/* -d outputs
+	rm -f fs/*.o *.o tecnicofs *.txt
 
 run: tecnicofs
 	./tecnicofs
