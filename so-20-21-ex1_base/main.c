@@ -16,7 +16,6 @@
 
 #define MAX_COMMANDS 150000
 #define MAX_INPUT_SIZE 100
-#define INDIM 30
 #define OUTDIM 512
 
 int numberThreads = 0;
@@ -86,10 +85,12 @@ void* applyCommands(void* param){
 
     char token, type;
     char name[MAX_INPUT_SIZE];
+    FILE *stdout;
     // char file1[MAX_INPUT_SIZE];
     // char file2[MAX_INPUT_SIZE];
 
     char* command = (char*) param;
+    printf("COMMAND: %s\n", command);
 
 /*-------------------------------------------------------------------------------------------------*/
     // if(flag == 1) 
@@ -126,6 +127,7 @@ void* applyCommands(void* param){
                         
                     printf("Create file: %s\n", name);
                     create(name, T_FILE);
+                    printf("ACABEI CREATE");
                     break;
                 case 'd':
                         
@@ -190,6 +192,12 @@ void* applyCommands(void* param){
             move(file1, file2);
             break;*/
 
+        case 'p':
+            stdout = fopen(name, "w");
+            print_tecnicofs_tree(stdout);
+            fclose(stdout);
+            break;
+
         default: { /* error */
             fprintf(stderr, "Error: command to apply\n");
             exit(EXIT_FAILURE);
@@ -198,7 +206,7 @@ void* applyCommands(void* param){
     // if(flag == 1) 
     pthread_mutex_unlock(&lock);
 /*-------------------------------------------------------------------------------------------------*/
-
+    printf("AQUI");
     return NULL;
 }
 
@@ -254,7 +262,7 @@ int main(int argc, char* argv[]) {
     
     while (1) {
         struct sockaddr_un client_addr;
-        char in_buffer[INDIM], out_buffer[OUTDIM];
+        char in_buffer[MAX_INPUT_SIZE], out_buffer[OUTDIM];
         int c;
 
         addrlen=sizeof(struct sockaddr_un);
@@ -264,11 +272,11 @@ int main(int argc, char* argv[]) {
         //Preventivo, caso o cliente nao tenha terminado a mensagem em '\0', 
         in_buffer[c]='\0';
         
-        printf("Recebeu mensagem de %s\n", client_addr.sun_path);
+        printf("Recebeu mensagem %s de %s\n", in_buffer, client_addr.sun_path);
 
         gettimeofday(&t0, NULL);
         for (int i=0; i < numberThreads; i++) {
-            if (pthread_create(&(tid[i]), NULL, applyCommands, &in_buffer[c]) != 0) {
+            if (pthread_create(&(tid[i]), NULL, applyCommands, &in_buffer) != 0) {
                 printf("Error creating thread.\n");
                 return -1;
             }
@@ -279,11 +287,14 @@ int main(int argc, char* argv[]) {
                 printf("Error joining thread.\n");
                 return -1;
             }
+            printf("JOIN");
         }
         gettimeofday(&t1, NULL);
         timersub(&t1, &t0, &totalT);    
 
-        c = sprintf(out_buffer, "TecnicoFS completed in %ld.%04ld seconds.\tCommand: %s \n\n", totalT.tv_sec, totalT.tv_usec, in_buffer);
+        printf("cheguei");
+
+        c = sprintf(out_buffer, "TecnicoFS completed in %ld.%04ld seconds.\n\n", totalT.tv_sec, totalT.tv_usec);
         
         sendto(sockfd, out_buffer, c+1, 0, (struct sockaddr *)&client_addr, addrlen);
 
@@ -294,10 +305,6 @@ int main(int argc, char* argv[]) {
     close(sockfd);
     unlink(argv[2]);
     exit(EXIT_SUCCESS);
-
-    /*FILE *stdout = fopen(argv[2],"w");
-    print_tecnicofs_tree(stdout);
-    fclose(stdout);*/
 
     /* release allocated memory */
     destroy_fs();

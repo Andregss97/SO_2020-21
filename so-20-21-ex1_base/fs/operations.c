@@ -114,6 +114,8 @@ int lookup_sub_node(char *name, DirEntry *entries) {
  * Returns: SUCCESS or FAIL
  */
 int create(char *name, type nodeType){
+	printf("DONE");
+
 
 	int parent_inumber, child_inumber;
 	char *parent_name, *child_name, name_copy[MAX_FILE_NAME];

@@ -7,6 +7,7 @@
 #include <stdio.h>
 
 #define CLIENT "client"
+#define MAX_INPUT_SIZE 100
 
 socklen_t servlen, clilen;
 struct sockaddr_un serv_addr, client_addr;
@@ -26,8 +27,15 @@ int setSockAddrUn(char *path, struct sockaddr_un *addr) {
 }
 
 int tfsCreate(char *filename, char nodeType) {
+  char message[MAX_INPUT_SIZE];
+  char type[] = "c ";
 
-  if (sendto(sockfd, filename, strlen(filename)+1, 0, (struct sockaddr *) &serv_addr, servlen) < 0) {
+  strcat(message, type);
+  strcat(message, filename);
+  strcat(message, " ");
+  strcat(message, &nodeType);
+
+  if (sendto(sockfd, message, strlen(message)+1, 0, (struct sockaddr *) &serv_addr, servlen) < 0) {
       perror("client: sendto error");
       exit(EXIT_FAILURE);
   } 
@@ -43,7 +51,25 @@ int tfsCreate(char *filename, char nodeType) {
 }
 
 int tfsDelete(char *path) {
-  return -1;
+  char message[MAX_INPUT_SIZE];
+  char type[] = "d ";
+
+  strcat(message, type);
+  strcat(message, path);
+
+  if (sendto(sockfd, message, strlen(message)+1, 0, (struct sockaddr *) &serv_addr, servlen) < 0) {
+      perror("client: sendto error");
+      exit(EXIT_FAILURE);
+  } 
+
+  if (recvfrom(sockfd, buffer, sizeof(buffer), 0, 0, 0) < 0) {
+      perror("client: recvfrom error");
+      exit(EXIT_FAILURE);
+  } 
+
+  printf("Recebeu resposta do servidor: %s\n", buffer);
+
+  return EXIT_SUCCESS;
 }
 
 int tfsMove(char *from, char *to) {
@@ -51,15 +77,32 @@ int tfsMove(char *from, char *to) {
 }
 
 int tfsLookup(char *path) {
+  char message[MAX_INPUT_SIZE];
+  char type[] = "l ";
+
+  strcat(message, type);
+  strcat(message, path);
+
+  if (sendto(sockfd, message, strlen(message)+1, 0, (struct sockaddr *) &serv_addr, servlen) < 0) {
+      perror("client: sendto error");
+      exit(EXIT_FAILURE);
+  } 
+
+  if (recvfrom(sockfd, buffer, sizeof(buffer), 0, 0, 0) < 0) {
+      perror("client: recvfrom error");
+      exit(EXIT_FAILURE);
+  } 
+
+  printf("Recebeu resposta do servidor: %s\n", buffer);
+
+  return EXIT_SUCCESS;
+}
+
+int tfsPrint(char* filename){
   return -1;
 }
 
 int tfsMount(char * sockPath) {
-
-  /*if (argc < 3) {
-    printf("Argumentos esperados:\n path_client_socket path_server_socket string_a_enviar\n");
-    return EXIT_FAILURE;
-  }*/
 
   if ((sockfd = socket(AF_UNIX, SOCK_DGRAM, 0) ) < 0) {
     perror("client: can't open socket");

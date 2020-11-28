@@ -39,6 +39,7 @@ void *processInput() {
         char op;
         char arg1[MAX_INPUT_SIZE], arg2[MAX_INPUT_SIZE];
         int res;
+        printf("LINE: %s\n", line);
 
         int numTokens = sscanf(line, "%c %s %s", &op, arg1, arg2);
 
@@ -97,6 +98,15 @@ void *processInput() {
                   printf("Moved: %s to %s\n", arg1, arg2);
                 else
                   printf("Unable to move: %s to %s\n", arg1, arg2);
+                break;
+            case 'p':
+                if(numTokens != 2)
+                    errorParse();
+                res = tfsPrint(arg1);
+                if (!res)
+                    printf("Printed: %s\n", arg1);
+                else
+                  printf("Unable to print: %s\n", arg1);
                 break;
             case '#':
                 break;
