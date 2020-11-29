@@ -6,12 +6,13 @@
 #include <sys/un.h>
 #include <stdio.h>
 
-#define CLIENT "client"
+#define CLIENT "/tmp/client"
 #define MAX_INPUT_SIZE 100
 
 socklen_t servlen, clilen;
 struct sockaddr_un serv_addr, client_addr;
-char buffer[1024];
+char message[MAX_INPUT_SIZE];
+char buffer[MAX_INPUT_SIZE];
 int sockfd;
 
 int setSockAddrUn(char *path, struct sockaddr_un *addr) {
@@ -27,15 +28,10 @@ int setSockAddrUn(char *path, struct sockaddr_un *addr) {
 }
 
 int tfsCreate(char *filename, char nodeType) {
-  char message[MAX_INPUT_SIZE];
-  char type[] = "c ";
 
-  strcat(message, type);
-  strcat(message, filename);
-  strcat(message, " ");
-  strcat(message, &nodeType);
+  sprintf(message, "c %s %s", filename, &nodeType);
 
-  if (sendto(sockfd, message, strlen(message)+1, 0, (struct sockaddr *) &serv_addr, servlen) < 0) {
+  if (sendto(sockfd, message, sizeof(message), 0, (struct sockaddr *) &serv_addr, servlen) < 0) {
       perror("client: sendto error");
       exit(EXIT_FAILURE);
   } 
@@ -47,17 +43,16 @@ int tfsCreate(char *filename, char nodeType) {
 
   printf("Recebeu resposta do servidor: %s\n", buffer);
 
-  return EXIT_SUCCESS;
+  int status = atoi(buffer);
+
+  return status;
 }
 
 int tfsDelete(char *path) {
-  char message[MAX_INPUT_SIZE];
-  char type[] = "d ";
+ 
+  sprintf(message, "d %s", path);
 
-  strcat(message, type);
-  strcat(message, path);
-
-  if (sendto(sockfd, message, strlen(message)+1, 0, (struct sockaddr *) &serv_addr, servlen) < 0) {
+  if (sendto(sockfd, message, sizeof(message), 0, (struct sockaddr *) &serv_addr, servlen) < 0) {
       perror("client: sendto error");
       exit(EXIT_FAILURE);
   } 
@@ -69,7 +64,9 @@ int tfsDelete(char *path) {
 
   printf("Recebeu resposta do servidor: %s\n", buffer);
 
-  return EXIT_SUCCESS;
+  int status = atoi(buffer);
+
+  return status;
 }
 
 int tfsMove(char *from, char *to) {
@@ -77,29 +74,49 @@ int tfsMove(char *from, char *to) {
 }
 
 int tfsLookup(char *path) {
-  char message[MAX_INPUT_SIZE];
-  char type[] = "l ";
 
-  strcat(message, type);
-  strcat(message, path);
+  sprintf(message, "l %s", path);
 
-  if (sendto(sockfd, message, strlen(message)+1, 0, (struct sockaddr *) &serv_addr, servlen) < 0) {
-      perror("client: sendto error");
-      exit(EXIT_FAILURE);
-  } 
+  if (sendto(sockfd, message, sizeof(message), 0, (struct sockaddr *) &serv_addr, servlen) < 0) {
+    perror("client: sendto error");
+    exit(EXIT_FAILURE);
+  }
 
   if (recvfrom(sockfd, buffer, sizeof(buffer), 0, 0, 0) < 0) {
-      perror("client: recvfrom error");
-      exit(EXIT_FAILURE);
-  } 
+    perror("client: recvfrom error");
+    exit(EXIT_FAILURE);
+  }
+
 
   printf("Recebeu resposta do servidor: %s\n", buffer);
 
-  return EXIT_SUCCESS;
+  int status = atoi(buffer);
+
+  printf("%d\n", status);
+  return status;
 }
 
 int tfsPrint(char* filename){
-  return -1;
+
+  sprintf(message, "p %s", filename);
+
+  if (sendto(sockfd, message, sizeof(message), 0, (struct sockaddr *) &serv_addr, servlen) < 0) {
+    perror("client: sendto error");
+    exit(EXIT_FAILURE);
+  }
+
+  if (recvfrom(sockfd, buffer, sizeof(buffer), 0, 0, 0) < 0) {
+    perror("client: recvfrom error");
+    exit(EXIT_FAILURE);
+  }
+
+
+  printf("Recebeu resposta do servidor: %s\n", buffer);
+
+  int status = atoi(buffer);
+
+  printf("%d\n", status);
+  return status;
 }
 
 int tfsMount(char * sockPath) {

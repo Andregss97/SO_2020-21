@@ -49,6 +49,7 @@ void *processInput() {
         }
         switch (op) {
             case 'c':
+                printf("ENTREI NO C\n");
                 if(numTokens != 3) {
                     errorParse();
                     break;
@@ -73,6 +74,7 @@ void *processInput() {
                 }
                 break;
             case 'l':
+                printf("ENTREI NO L\n");
                 if(numTokens != 2)
                     errorParse();
                 res = tfsLookup(arg1);
@@ -82,6 +84,7 @@ void *processInput() {
                     printf("Search: %s not found\n", arg1);
                 break;
             case 'd':
+                printf("ENTREI NO D\n");
                 if(numTokens != 2)
                     errorParse();
                 res = tfsDelete(arg1);
@@ -91,6 +94,7 @@ void *processInput() {
                   printf("Unable to delete: %s\n", arg1);
                 break;
             case 'm':
+                printf("ENTREI NO M\n");
                 if(numTokens != 3)
                     errorParse();
                 res = tfsMove(arg1, arg2);
@@ -100,6 +104,7 @@ void *processInput() {
                   printf("Unable to move: %s to %s\n", arg1, arg2);
                 break;
             case 'p':
+                printf("ENTREI NO P\n");
                 if(numTokens != 2)
                     errorParse();
                 res = tfsPrint(arg1);
@@ -109,6 +114,7 @@ void *processInput() {
                   printf("Unable to print: %s\n", arg1);
                 break;
             case '#':
+                printf("ENTREI NO #\n");
                 break;
             default: { /* error */
                 errorParse();

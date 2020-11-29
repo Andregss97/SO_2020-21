@@ -11,3 +11,4 @@ l a/x/y/z
 d a/x
 l a/x
 l a/x/y
+p output.txt
