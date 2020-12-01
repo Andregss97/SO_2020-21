@@ -4,7 +4,8 @@
 #include "../tecnicofs-api-constants.h"
 
 FILE* inputFile;
-char* serverName;
+char* path_aux;
+char serverName[100];
 
 static void displayUsage (const char* appName) {
     printf("Usage: %s inputfile server_socket_name\n", appName);
@@ -17,7 +18,9 @@ static void parseArgs (long argc, char* const argv[]) {
         displayUsage(argv[0]);
     }
 
-    serverName = argv[2];
+    path_aux = argv[2];
+
+    sprintf(serverName, "/tmp/%s", path_aux);
 
     inputFile = fopen(argv[1], "r");
 

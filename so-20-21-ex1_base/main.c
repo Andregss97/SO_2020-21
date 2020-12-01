@@ -140,7 +140,8 @@ int main(int argc, char* argv[]) {
     int sockfd;
     struct sockaddr_un server_addr;
     socklen_t addrlen;
-    char *path;
+    char *path_aux;
+    char path[100];
 
     // struct timeval t0, t1, totalT;
     /* init filesystem */
@@ -163,11 +164,13 @@ int main(int argc, char* argv[]) {
         exit(EXIT_FAILURE);
     }
 
-    path = argv[2];
+    path_aux = argv[2];
+
+    sprintf(path, "/tmp/%s", path_aux);
 
     unlink(path);
 
-    addrlen = setSockAddrUn (argv[2], &server_addr);
+    addrlen = setSockAddrUn (path, &server_addr);
     if (bind(sockfd, (struct sockaddr *) &server_addr, addrlen) < 0) {
         perror("server: bind error");
         exit(EXIT_FAILURE);
@@ -212,7 +215,7 @@ int main(int argc, char* argv[]) {
     //Fechar e apagar o nome do socket, apesar deste programa 
     //nunca chegar a este ponto
     close(sockfd);
-    unlink(argv[2]);
+    unlink(path);
     exit(EXIT_SUCCESS);
 
     /* release allocated memory */
