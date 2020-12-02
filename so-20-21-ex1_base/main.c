@@ -21,25 +21,53 @@
 #define FAILURE_STATUS -1
 
 int numberThreads = 0;
+int numberCommands = 0;
+char inputCommands[MAX_COMMANDS][MAX_INPUT_SIZE];
+int headQueue = 0;
 char* command;
 int flag;
 pthread_mutex_t lock;
 
+int insertCommand(char* data) {
+    if(numberCommands != MAX_COMMANDS) {
+        strcpy(inputCommands[numberCommands++], data);
+        return 1;
+    }
+    return 0;
+}
 
+char* removeCommand() {
+    if(numberCommands > 0){
+        numberCommands--;
+        return inputCommands[headQueue++];  
+    }
+    return NULL;
+}
 
-void* applyCommands(){
-
+void* applyCommands(void* socket){
     char token, type;
+    struct sockaddr_un client_addr;
+    socklen_t addrlen;
+    char in_buffer[MAX_INPUT_SIZE], out_buffer[MAX_INPUT_SIZE];
     char name[MAX_INPUT_SIZE];
     FILE *stdout;
+    int c;
     // char file1[MAX_INPUT_SIZE];
     // char file2[MAX_INPUT_SIZE];
-
-    printf("COMMAND: (%s)\n", command);
 
 /*-------------------------------------------------------------------------------------------------*/
 
     pthread_mutex_lock(&lock);
+
+    int sockfd = *((int*) socket);
+
+    addrlen=sizeof(struct sockaddr_un);
+    recvfrom(sockfd, in_buffer, sizeof(in_buffer)-1, 0,
+        (struct sockaddr *)&client_addr, &addrlen);
+    
+    command = in_buffer;
+
+    printf("Recebeu mensagem %s de %s na thread %ld\n", command, client_addr.sun_path, pthread_self());
 
     int numTokens = sscanf(command, "%c %s %c", &token, name, &type);
 
@@ -116,6 +144,10 @@ void* applyCommands(){
         }
     }
 
+    c = sprintf(out_buffer, "%d", flag);
+        
+    sendto(sockfd, out_buffer, c+1, 0, (struct sockaddr *)&client_addr, addrlen);
+
     pthread_mutex_unlock(&lock);
 
 /*-------------------------------------------------------------------------------------------------*/
@@ -177,21 +209,10 @@ int main(int argc, char* argv[]) {
     }
     
     while (1) {
-        struct sockaddr_un client_addr;
-        char in_buffer[MAX_INPUT_SIZE], out_buffer[MAX_INPUT_SIZE];
-        int c;
-
-        addrlen=sizeof(struct sockaddr_un);
-        c = recvfrom(sockfd, in_buffer, sizeof(in_buffer)-1, 0,
-            (struct sockaddr *)&client_addr, &addrlen);
-        
-        command = in_buffer;
-
-        printf("Recebeu mensagem %s de %s\n", command, client_addr.sun_path);
 
         // gettimeofday(&t0, NULL);
         for (int i=0; i < numberThreads; i++) {
-            if (pthread_create(&(tid[i]), NULL, applyCommands, NULL) != 0) {
+            if (pthread_create(&(tid[i]), NULL, applyCommands, &sockfd) != 0) {
                 printf("Error creating thread.\n");
                 return -1;
             }
@@ -205,10 +226,6 @@ int main(int argc, char* argv[]) {
         }
         // gettimeofday(&t1, NULL);
         // timersub(&t1, &t0, &totalT);    
-
-        c = sprintf(out_buffer, "%d", flag);
-        
-        sendto(sockfd, out_buffer, c+1, 0, (struct sockaddr *)&client_addr, addrlen);
 
     }
 
