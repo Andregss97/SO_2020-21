@@ -41,8 +41,6 @@ int tfsCreate(char *filename, char nodeType) {
       exit(EXIT_FAILURE);
   } 
 
-  printf("Recebeu resposta do servidor: %s\n", buffer);
-
   int status = atoi(buffer);
 
   return status;
@@ -62,8 +60,6 @@ int tfsDelete(char *path) {
       exit(EXIT_FAILURE);
   } 
 
-  printf("Recebeu resposta do servidor: %s\n", buffer);
-
   int status = atoi(buffer);
 
   return status;
@@ -82,12 +78,9 @@ int tfsMove(char *from, char *to) {
       exit(EXIT_FAILURE);
   } 
 
-  printf("Recebeu resposta do servidor: %s\n", buffer);
-
   int status = atoi(buffer);
 
   return status;
-  return -1;
 }
 
 int tfsLookup(char *path) {
@@ -104,12 +97,8 @@ int tfsLookup(char *path) {
     exit(EXIT_FAILURE);
   }
 
-
-  printf("Recebeu resposta do servidor: %s\n", buffer);
-
   int status = atoi(buffer);
 
-  printf("%d\n", status);
   return status;
 }
 
@@ -127,12 +116,8 @@ int tfsPrint(char* filename){
     exit(EXIT_FAILURE);
   }
 
-
-  printf("Recebeu resposta do servidor: %s\n", buffer);
-
   int status = atoi(buffer);
 
-  printf("%d\n", status);
   return status;
 }
 

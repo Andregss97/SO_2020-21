@@ -62,4 +62,4 @@ m /a/z /z
 m /a /a/a
 m /c /c/c
 m /e /e/e
-p output5.txt
+p output.txt

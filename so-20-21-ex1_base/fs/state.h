@@ -9,8 +9,8 @@
 #define FS_ROOT 0
 
 #define FREE_INODE -1
-#define INODE_TABLE_SIZE 50
-#define MAX_DIR_ENTRIES 20
+#define INODE_TABLE_SIZE 5000
+#define MAX_DIR_ENTRIES 500
 
 #define SUCCESS 0
 #define FAIL -1

@@ -21,9 +21,6 @@
 #define FAILURE_STATUS -1
 
 int numberThreads = 0;
-int numberCommands = 0;
-char inputCommands[MAX_COMMANDS][MAX_INPUT_SIZE];
-int headQueue = 0;
 char* command;
 int flag;
 pthread_mutex_t lock;
@@ -34,14 +31,17 @@ void* applyCommands(void* socket){
     socklen_t addrlen;
     char in_buffer[MAX_INPUT_SIZE], out_buffer[MAX_INPUT_SIZE];
     char name[MAX_INPUT_SIZE];
-    FILE *stdout;
+    FILE *output;
     int c;
     char file1[MAX_INPUT_SIZE];
     char file2[MAX_INPUT_SIZE];
 
 /*-------------------------------------------------------------------------------------------------*/
 
-    pthread_mutex_lock(&lock);
+    if(pthread_mutex_lock(&lock) != 0){
+        fprintf(stderr, "Error: unable to lock mutex\n");
+        exit(EXIT_FAILURE);
+    };
 
     int sockfd = *((int*) socket);
     int numTokens;
@@ -51,8 +51,6 @@ void* applyCommands(void* socket){
         (struct sockaddr *)&client_addr, &addrlen);
     
     command = in_buffer;
-
-    printf("Recebeu mensagem %s de %s na thread %ld\n", command, client_addr.sun_path, pthread_self());
 
     if (command[0] == 'm') {
         numTokens = sscanf(command, "%c %s %s", &token, file1, file2);
@@ -125,9 +123,18 @@ void* applyCommands(void* socket){
             break;
 
         case 'p':
-            stdout = fopen(name, "w");
-            print_tecnicofs_tree(stdout);
-            fclose(stdout);
+            output = fopen(name, "w");
+            if(!output){
+                flag = FAILURE_STATUS;
+                break;
+            }
+
+            print_tecnicofs_tree(output);
+
+            if(fclose(output) != 0){
+                flag = FAILURE_STATUS;
+                break;
+            }
             flag = SUCCESS_STATUS;
             break;
 
@@ -141,7 +148,10 @@ void* applyCommands(void* socket){
         
     sendto(sockfd, out_buffer, c+1, 0, (struct sockaddr *)&client_addr, addrlen);
 
-    pthread_mutex_unlock(&lock);
+    if(pthread_mutex_unlock(&lock) != 0){
+        fprintf(stderr, "Error: unable to unlock mutex\n");
+        exit(EXIT_FAILURE);
+    };
 
 /*-------------------------------------------------------------------------------------------------*/
 
