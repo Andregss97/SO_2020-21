@@ -268,6 +268,109 @@ int lookup(char *name) {
 
 
 /*
+ * Moves a node given two paths.
+ * Input:
+ *  - originPath: origin path of node
+ *  - destinPath: destination path of node
+ * Returns: SUCCESS or FAIL
+ */
+int move(char* originPath, char* destinPath) {
+	//Origin
+	int parent_inumber_Origin, child_inumber_Origin;
+	char *parent_name_Origin, *child_name_Origin, name_copy_Origin[MAX_FILE_NAME];
+	type pType_Origin, cType_Origin;
+	union Data pdata_Origin, cdata_Origin;
+
+	//Destination
+	int parent_inumber_Destin, child_inumber_Destin;
+	char *parent_name_Destin, *child_name_Destin, name_copy_Destin[MAX_FILE_NAME];
+	type pType_Destin;
+	union Data pdata_Destin;
+
+	strcpy(name_copy_Origin, originPath);
+	split_parent_child_from_path(name_copy_Origin, &parent_name_Origin, &child_name_Origin);
+
+	strcpy(name_copy_Destin, destinPath);
+	split_parent_child_from_path(name_copy_Destin, &parent_name_Destin, &child_name_Destin);
+
+	if(strcmp(child_name_Destin,child_name_Origin) != 0)
+		return FAIL;
+
+	// lookup iNumbers of Parents
+	// ORIGIN ////////////////////////////////////////////////////////////////
+	parent_inumber_Origin = lookup(parent_name_Origin);
+	if(parent_inumber_Origin == FAIL) {
+		printf("failed to move %s, invalid parent dir %s\n",
+		        child_name_Origin, parent_name_Origin);
+		return FAIL;
+	}
+
+	inode_get(parent_inumber_Origin, &pType_Origin, &pdata_Origin);
+
+	if(pType_Origin != T_DIRECTORY) {
+		printf("failed to move %s, parent %s is not a dir\n",
+		        child_name_Origin, parent_name_Origin);
+		return FAIL;
+	}
+
+	// DESTINATION //////////////////////////////////////////////////////////
+	parent_inumber_Destin = lookup(parent_name_Destin);
+	if(parent_inumber_Destin == FAIL) {
+		printf("failed to move %s, invalid parent dir %s\n",
+		        child_name_Destin, parent_name_Destin);
+		return FAIL;
+	}
+	inode_get(parent_inumber_Destin, &pType_Destin, &pdata_Destin);
+
+	if(pType_Destin != T_DIRECTORY) {
+		printf("failed to move %s, parent %s is not a dir\n",
+		        child_name_Destin, parent_name_Destin);
+		return FAIL;
+	}
+
+	// lookup iNumber of Child of Origin Directory
+	child_inumber_Origin = lookup_sub_node(child_name_Origin, pdata_Origin.dirEntries);
+
+	if (child_inumber_Origin == FAIL) {
+		printf("could not move %s, does not exist in dir %s\n",
+		       child_name_Origin, parent_name_Origin);
+		return FAIL;
+	}
+
+	inode_get(child_inumber_Origin, &cType_Origin, &cdata_Origin);
+
+	if(cType_Origin == T_NONE) {
+		printf("failed to move %s, it's not a file or directory\n",
+		        child_name_Origin);
+		return FAIL;
+	}
+
+	/* remove entry from folder that contained the node to be moved */
+	if (dir_reset_entry(parent_inumber_Origin, child_inumber_Origin) == FAIL) {
+		printf("failed to move %s from dir %s\n",
+		       child_name_Origin, parent_name_Origin);
+		return FAIL;
+	}
+
+	// Create new iNode in destination
+	child_inumber_Destin = inode_move(cType_Origin, cdata_Origin);
+	if (child_inumber_Destin == FAIL) {
+		printf("failed to move %s to  %s, couldn't allocate inode\n",
+		        child_name_Origin, parent_name_Destin);
+		return FAIL;
+	}
+
+	if (dir_add_entry(parent_inumber_Destin, child_inumber_Destin, child_name_Destin) == FAIL) {
+		printf("could not add entry %s in dir %s\n",
+		       child_name_Destin, parent_name_Destin);
+		return FAIL;
+	}
+
+	return SUCCESS;
+}
+
+
+/*
  * Prints tecnicofs tree.
  * Input:
  *  - fp: pointer to output file

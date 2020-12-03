@@ -206,6 +206,32 @@ int dir_add_entry(int inumber, int sub_inumber, char *sub_name) {
     return FAIL;
 }
 
+/*
+ * Creates a new i-node in the table with the given information.
+ * Input:
+ *  - nType: the type of the node (file or directory)
+ *  - nData: the data of the node (file or directory)
+ * Returns:
+ *  inumber: identifier of the new i-node, if successfully created
+ *     FAIL: if an error occurs
+ */
+int inode_move(type nType, union Data nData) {
+    /* Used for testing synchronization speedup */
+    insert_delay(DELAY);
+
+    for (int inumber = 0; inumber < INODE_TABLE_SIZE; inumber++) {
+        if (inode_table[inumber].nodeType == T_NONE) {
+            inode_table[inumber].nodeType = nType;
+
+            inode_table[inumber].data.dirEntries = malloc(sizeof(DirEntry) * MAX_DIR_ENTRIES);
+            inode_table[inumber].data = nData;
+            
+            return inumber;
+        }
+    }
+    return FAIL;
+}
+
 
 /*
  * Prints the i-nodes table.

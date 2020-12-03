@@ -28,22 +28,6 @@ char* command;
 int flag;
 pthread_mutex_t lock;
 
-int insertCommand(char* data) {
-    if(numberCommands != MAX_COMMANDS) {
-        strcpy(inputCommands[numberCommands++], data);
-        return 1;
-    }
-    return 0;
-}
-
-char* removeCommand() {
-    if(numberCommands > 0){
-        numberCommands--;
-        return inputCommands[headQueue++];  
-    }
-    return NULL;
-}
-
 void* applyCommands(void* socket){
     char token, type;
     struct sockaddr_un client_addr;
@@ -52,14 +36,15 @@ void* applyCommands(void* socket){
     char name[MAX_INPUT_SIZE];
     FILE *stdout;
     int c;
-    // char file1[MAX_INPUT_SIZE];
-    // char file2[MAX_INPUT_SIZE];
+    char file1[MAX_INPUT_SIZE];
+    char file2[MAX_INPUT_SIZE];
 
 /*-------------------------------------------------------------------------------------------------*/
 
     pthread_mutex_lock(&lock);
 
     int sockfd = *((int*) socket);
+    int numTokens;
 
     addrlen=sizeof(struct sockaddr_un);
     recvfrom(sockfd, in_buffer, sizeof(in_buffer)-1, 0,
@@ -69,7 +54,12 @@ void* applyCommands(void* socket){
 
     printf("Recebeu mensagem %s de %s na thread %ld\n", command, client_addr.sun_path, pthread_self());
 
-    int numTokens = sscanf(command, "%c %s %c", &token, name, &type);
+    if (command[0] == 'm') {
+        numTokens = sscanf(command, "%c %s %s", &token, file1, file2);
+    }
+    else {
+        numTokens = sscanf(command, "%c %s %c", &token, name, &type);
+    }
 
     if (numTokens < 2) {
         fprintf(stderr, "Error: invalid command in Queue\n");
@@ -126,10 +116,13 @@ void* applyCommands(void* socket){
 
             break;
 
-        /*case 'm':
-            move(file1, file2);
-
-            break;*/
+        case 'm':
+            printf("Move: %s to %s\n", file1, file2);
+            if(move(file1, file2) == 0)
+                flag = SUCCESS_STATUS;
+            else
+                flag = FAILURE_STATUS;
+            break;
 
         case 'p':
             stdout = fopen(name, "w");
@@ -229,13 +222,6 @@ int main(int argc, char* argv[]) {
 
     }
 
-    //Fechar e apagar o nome do socket, apesar deste programa 
-    //nunca chegar a este ponto
-    close(sockfd);
-    unlink(path);
-    exit(EXIT_SUCCESS);
-
     /* release allocated memory */
-    destroy_fs();
     exit(EXIT_SUCCESS);
 }

@@ -1,0 +1,9 @@
+c a d
+c j d
+c a/b f
+c a/x/ d
+c a/y/ d
+c a/x/z f
+p output.txt
+m a/x/z a/y/z
+m a/y j/y

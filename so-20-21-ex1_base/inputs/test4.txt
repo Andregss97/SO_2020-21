@@ -15,3 +15,4 @@ d fruits/grape
 d fruits/grape
 l fruits/grape
 l fruits
+p output4.txt

@@ -70,6 +70,23 @@ int tfsDelete(char *path) {
 }
 
 int tfsMove(char *from, char *to) {
+  sprintf(message, "m %s %s", from, to);
+
+  if (sendto(sockfd, message, sizeof(message), 0, (struct sockaddr *) &serv_addr, servlen) < 0) {
+      perror("client: sendto error");
+      exit(EXIT_FAILURE);
+  } 
+
+  if (recvfrom(sockfd, buffer, sizeof(buffer), 0, 0, 0) < 0) {
+      perror("client: recvfrom error");
+      exit(EXIT_FAILURE);
+  } 
+
+  printf("Recebeu resposta do servidor: %s\n", buffer);
+
+  int status = atoi(buffer);
+
+  return status;
   return -1;
 }
 
@@ -142,6 +159,7 @@ int tfsUnmount() {
   if(!sockfd){
     return EXIT_FAILURE;
   }
+  
   close(sockfd);
 
   unlink(CLIENT);
