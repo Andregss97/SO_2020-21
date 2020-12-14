@@ -63,7 +63,6 @@ void init_fs() {
 	}
 	inode_get_lock(buffer_locks[root_iNode], &rwl);
 	pthread_rwlock_unlock(rwl);
-	printf(" [%ld] UnLock no iNode: %d (INIT)\n", pthread_self(), buffer_locks[root_iNode]);
 	free(buffer_locks);
 }
 
@@ -136,17 +135,11 @@ int create(char *name, type nodeType, int* buffer){
 	union Data pdata;
 	pthread_rwlock_t *rwl;
 
-	printf("[%ld] 1\n", pthread_self());
 	strcpy(name_copy, name);
-	printf("[%ld] 2\n", pthread_self());
 	split_parent_child_from_path(name_copy, &parent_name, &child_name);
-	printf("[%ld] Parent name: %s // Child name: %s\n", pthread_self(), parent_name, child_name);
 
-	printf("[%ld] 3\n", pthread_self());
 	parent_inumber = lookup(parent_name, buffer, CREATE, count);
-  printf("[%ld] Parent iNumber is: %d\n", pthread_self(), parent_inumber);
 
-	printf("[%ld] 4\n", pthread_self());
 	if (parent_inumber == FAIL) {
 		//printf("failed to create %s, invalid parent dir %s\n",
 		        //name, parent_name);
@@ -169,7 +162,6 @@ int create(char *name, type nodeType, int* buffer){
 
 	/* create node and add entry to folder that contains new node */
 	
-	printf("[%ld] 4,5\n", pthread_self());
 	child_inumber = inode_create(nodeType, buffer, count);
 	if (child_inumber == FAIL) {
 		//printf("failed to create %s in  %s, couldn't allocate inode\n",
@@ -186,10 +178,8 @@ int create(char *name, type nodeType, int* buffer){
 	for (int i=0; i < *count; i++){
 		inode_get_lock(buffer[i], &rwl);
 		pthread_rwlock_unlock(rwl);
-		printf("\t[%ld] Buffer index: %d // UnLock no iNode: %d\n", pthread_self(), i, buffer[i]);
 	}
 
-	printf("[%ld] DOES FREE create\n", pthread_self());
   free(buffer);
 
 
@@ -267,10 +257,8 @@ int delete(char *name, int* buffer){
 	for (int i=0; i < *count; i++){
 		inode_get_lock(buffer[i], &rwl);
 		pthread_rwlock_unlock(rwl);
-		printf("\t[%ld] Buffer index: %d // UnLock no iNode: %d\n", pthread_self(), i, buffer[i]);
 	}
 
-	printf("[%ld] DOES FREE delete\n", pthread_self());
   free(buffer);
 
 	return SUCCESS;
@@ -290,12 +278,9 @@ int lookup(char *name, int *buffer, int flag, int* count) {
 	char delim[] = "/";
 	char* saveptr;
 
-	printf("[%ld]-----------\n", pthread_self());
-	printf("[%ld] 1\n", pthread_self());
 	strcpy(full_path, name);
 
 	/* start at root node */
-	printf("[%ld] 2\n", pthread_self());
 	int current_inumber = FS_ROOT;
 
 	/* use for copy */
@@ -306,53 +291,37 @@ int lookup(char *name, int *buffer, int flag, int* count) {
 	/* get root inode data */
 	
 
-	printf("[%ld] 3\n", pthread_self());
 	char *path = strtok_r(full_path, delim, &saveptr);
 	if (path){
 		//READ LOCK
-		printf("[%ld] 4\n", pthread_self());
 		inode_get_lock(current_inumber, &rwl);
 		pthread_rwlock_rdlock(rwl);
-		printf("[%ld] Read Lock no iNode: %d\n", pthread_self(), current_inumber);
-		printf("[%ld] Buffer Counter: %d\n", pthread_self(), *count);
 		buffer[(*count)++] = current_inumber;	
-		printf("[%ld] Buffer Counter [after]: %d\n", pthread_self(), *count);
 		inode_get(current_inumber, &nType, &data);
 	}
 
-	printf("[%ld] 5 - iNumber %d - path %s\n", pthread_self(), current_inumber, path);
 	/* search for all sub nodes */
 	while (path != NULL && (current_inumber = lookup_sub_node(path, data.dirEntries)) != FAIL) {
-		printf("\t[%ld] Entrou no ciclo WHILE com current_inumber %d\n", pthread_self(), current_inumber);
 		path = strtok_r(NULL, delim, &saveptr);
 		if (path) {
 			//READ LOCK
 			inode_get_lock(current_inumber, &rwl);
 			pthread_rwlock_rdlock(rwl);
-			printf("[%ld] Read Lock no iNode: %d\n", pthread_self(), current_inumber);
 			buffer[(*count)++] = current_inumber;	
 			inode_get(current_inumber, &nType, &data);
 		}
 	}
 
-  printf("inLOOKUP: buffer %d %d %d %d %d\n", buffer[0], buffer[1], buffer[2], buffer[3], buffer[4]);
-	printf("[%ld] 6 - iNumber %d\n", pthread_self(), current_inumber);
 
 	if(flag == LOOKUP && current_inumber != FAIL){
 		inode_get_lock(current_inumber, &rwl);
 		pthread_rwlock_rdlock(rwl);
-		printf("[%ld] Read Lock no [último] iNode: %d  (LOOKUP)\n", pthread_self(), current_inumber);
 		buffer[(*count)++] = current_inumber;
 	}
 	else if((flag == DELETE || flag== CREATE) && current_inumber != FAIL){
-		printf("[%ld] 7\n", pthread_self());
 		inode_get_lock(current_inumber, &rwl);
-		printf("[%ld] 8 - %d - %p\n", pthread_self(), current_inumber, &rwl);
 		pthread_rwlock_wrlock(rwl);
-		printf("[%ld] Write Lock no [último] iNode: %d  (DELETE/CREATE)\n", pthread_self(), current_inumber);
-		printf("[%ld] Buffer Counter: %d\n", pthread_self(), *count);
 		buffer[(*count)++] = current_inumber;
-		printf("[%ld] Buffer Counter [after]: %d\n", pthread_self(), *count);
 	}
 
 	return current_inumber;

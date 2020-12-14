@@ -3,7 +3,7 @@ GREEN='\033[0;32m'
 NC='\033[0m'
  
 mkdir $2
-for input in $1/test2.txt
+for input in $1
 do
  for NumThreads in $(seq 1 $3)
  do
